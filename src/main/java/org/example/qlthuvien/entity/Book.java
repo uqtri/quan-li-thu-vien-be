@@ -1,6 +1,9 @@
 package org.example.qlthuvien.entity;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.List;
+
 @Data
 @Entity
 @Table(name = "Book")
@@ -18,4 +21,8 @@ public class Book {
     @ManyToOne
     @JoinColumn(name = "catalog_id")
     private Catalog catalog;
+
+    @OneToMany(mappedBy = "book")
+    private List<BookItem> bookItems;
+
 }

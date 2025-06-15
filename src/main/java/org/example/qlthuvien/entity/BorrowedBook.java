@@ -3,12 +3,15 @@ package org.example.qlthuvien.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
+import java.util.Date;
+
 @Entity
-@Table(name = "BOOK_LENDING")
+@Table(name = "borrowed_book")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class BookLending {
+public class BorrowedBook {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -18,14 +21,21 @@ public class BookLending {
     private User user;
 
     @ManyToOne
-    @JoinColumn(name = "book_id")
-    private Book book;
+    @JoinColumn(name = "book_items_id")
+    private BookItem book_item;
 
-    private String borrowDate;
-    private String returnDate;
+    private LocalDateTime borrow_date;
+
+    private LocalDateTime return_date;
 
     @Enumerated(EnumType.STRING)
     private LendingStatus status;
+
+    @PrePersist
+    public void onCreate() {
+        this.borrow_date = LocalDateTime.now();
+    }
+
 }
 enum LendingStatus {
     BORROWED,

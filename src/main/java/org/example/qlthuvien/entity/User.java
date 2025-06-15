@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
+import java.util.Date;
 import java.util.List;
 
 @Entity
@@ -19,17 +20,16 @@ public class User {
 
     private String name;
     private String email;
-    private String password;
+    private String password_hash;
+
+    private Date created_at;
 
     @Enumerated(EnumType.STRING)
     private ROLE role;
 
     @OneToMany(mappedBy = "user")
-    private List<BookLending> lendings;
+    private List<BorrowedBook> lendings;
 
-//    public String getName() {
-//        return this.name;
-//    }
 }
 
 enum ROLE{
