@@ -7,11 +7,15 @@ import lombok.RequiredArgsConstructor;
 import org.example.qlthuvien.config.CloudinaryConfig;
 import org.example.qlthuvien.dto.book.BookResponse;
 import org.example.qlthuvien.dto.book.CreateBookRequest;
+import org.example.qlthuvien.dto.book.UpdateBookRequest;
 import org.example.qlthuvien.entity.Book;
 import org.example.qlthuvien.mapper.BookMapper;
 import org.example.qlthuvien.repository.BookRepository;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Base64;
 import java.util.List;
@@ -26,14 +30,10 @@ public class BookController {
     private final BookMapper bookMapper;
     private final Cloudinary cloudinary;
 
-//    BookController(BookRepository bookRepository, BookMapper bookMapper) {
-//        this.bookRepository = bookRepository;
-//        this.bookMapper = bookMapper;
-//
-//    }
     @GetMapping
-    List<BookResponse> getAllBooks() {
-        return bookRepository.findAll().stream().map(bookMapper::toResponse).toList();
+    List<BookResponse> getAllBooks(@RequestParam String title, Pageable pageable) {
+
+        return bookRepository.findAll(title, pageable).stream().map(bookMapper::toResponse).toList();
     }
     @PostMapping
     BookResponse createBook(@ModelAttribute CreateBookRequest data) {
@@ -64,5 +64,43 @@ public class BookController {
         }
         Book savedBook = bookRepository.save(book);
         return bookMapper.toResponse(savedBook);
+    }
+    @PutMapping("/{id}")
+    BookResponse updateBook(@PathVariable Long id, @ModelAttribute UpdateBookRequest data) {
+
+        Book book = bookMapper.toEntity(data);
+        Book exsitedBook = bookRepository.findById(id).orElse(null);
+
+        System.out.println(data);
+        if (exsitedBook == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Book not found");
+        }
+
+        try{
+            MultipartFile image = data.getImage();
+
+            System.out.println(image);
+            System.out.println(image.getOriginalFilename());
+            byte[] byteArray = image.getBytes();
+
+            String base64String = "data:" + image.getContentType() + ";base64," + Base64.getEncoder().encodeToString(data.getImage().getBytes());
+
+            Map uploadResult = cloudinary.uploader().upload(base64String, ObjectUtils.asMap(
+                    "use_filename", true,
+                    "unique_filename", false,
+                    "overwrite", true
+            ));
+
+            String secure_url = uploadResult.get("secure_url").toString();
+            System.out.println(secure_url);
+            book.setImage(secure_url);
+        }
+        catch(Exception e){
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Lỗi đọc file upload", e);
+        }
+        exsitedBook = bookMapper.updateEntity(exsitedBook, book);
+
+
+        return bookMapper.toResponse(bookRepository.save(exsitedBook));
     }
 }
