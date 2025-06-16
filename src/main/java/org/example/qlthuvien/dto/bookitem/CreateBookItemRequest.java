@@ -17,5 +17,5 @@ public class CreateBookItemRequest {
 
     private Date created_at;
 
-    private Book book;
+    private Long book_id;
 }

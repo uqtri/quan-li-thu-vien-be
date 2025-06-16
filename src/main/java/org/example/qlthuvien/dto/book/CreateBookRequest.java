@@ -12,7 +12,7 @@ public class CreateBookRequest {
     private String author;
     private String title;
     private String description;
-    private String catalog_id;
+    private Long catalog_id;
     private MultipartFile image;
 }
 
