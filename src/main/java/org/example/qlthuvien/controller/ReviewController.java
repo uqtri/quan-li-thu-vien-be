@@ -14,12 +14,15 @@ import org.example.qlthuvien.payload.ApiResponse;
 import org.example.qlthuvien.repository.BookRepository;
 import org.example.qlthuvien.repository.ReviewRepository;
 import org.example.qlthuvien.repository.UserRepository;
+import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/reviews")
@@ -32,40 +35,96 @@ public class                     ReviewController {
     private final BookRepository bookRepository;
 
     @GetMapping
-    public ResponseEntity<?> getAllNotifications() {
-        List<ReviewResponse> reviews = reviewRepository.findAllByOrderByCreatedAtDesc()
-                .stream()
+    public ResponseEntity<?> getAllReviews(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        if (page < 1) {
+            return ResponseEntity.badRequest().body(
+                    new ApiResponse<>(false, "Số trang phải ≥ 1", null)
+            );
+        }
+
+        Pageable pageable = PageRequest.of(page - 1, size, Sort.by("createdAt").descending());
+        Page<Review> reviewPage = reviewRepository.findAll(pageable);
+
+        List<ReviewResponse> reviewResponses = reviewPage.getContent().stream()
                 .map(reviewMapper::toResponse)
                 .toList();
 
-        return ResponseEntity.ok(new ApiResponse<>(true, "Xem nhận xét thành công.", reviews));
+        Map<String, Object> response = new HashMap<>();
+        response.put("items", reviewResponses);
+        response.put("currentPage", reviewPage.getNumber() + 1); // Trả lại page 1-based
+        response.put("totalItems", reviewPage.getTotalElements());
+        response.put("totalPages", reviewPage.getTotalPages());
+
+        return ResponseEntity.ok(new ApiResponse<>(true, "Xem nhận xét thành công.", response));
     }
 
+
     @GetMapping("/user/{userId}")
-    public ResponseEntity<?> getReviewsByUserId(@PathVariable Long userId) {
+    public ResponseEntity<?> getReviewsByUserId(
+            @PathVariable Long userId,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng."));
 
-        List<ReviewResponse> userNotis = reviewRepository.findByUserIdOrderByCreatedAtDesc(user.getId())
+        Pageable pageable = PageRequest.of(page - 1, size, Sort.by("createdAt").descending());
+        Page<Review> reviewPage = reviewRepository.findByUserId(userId, pageable);
+
+        List<ReviewResponse> reviewResponses = reviewPage.getContent()
                 .stream()
                 .map(reviewMapper::toResponse)
                 .toList();
 
-        return ResponseEntity.ok(new ApiResponse<>(true, "Xem nhận xét của người dùng thành công.", userNotis));
+        ApiResponse<?> response = new ApiResponse<>(
+                true,
+                "Xem nhận xét của người dùng thành công.",
+                Map.of(
+                        "items", reviewResponses,
+                        "currentPage", reviewPage.getNumber() + 1,
+                        "totalPages", reviewPage.getTotalPages(),
+                        "totalItems", reviewPage.getTotalElements()
+                )
+        );
+
+        return ResponseEntity.ok(response);
     }
+
 
     @GetMapping("/book/{bookId}")
-    public ResponseEntity<?> getReviewsByBookId(@PathVariable Long bookId) {
+    public ResponseEntity<?> getReviewsByBookId(
+            @PathVariable Long bookId,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
         Book book = bookRepository.findById(bookId)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng."));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy sách."));
 
-        List<ReviewResponse> userNotis = reviewRepository.findByBookIdOrderByCreatedAtDesc(book.getId())
+        Pageable pageable = PageRequest.of(page - 1, size, Sort.by("createdAt").descending());
+        Page<Review> reviewPage = reviewRepository.findByBookId(bookId, pageable);
+
+        List<ReviewResponse> reviewResponses = reviewPage.getContent()
                 .stream()
                 .map(reviewMapper::toResponse)
                 .toList();
 
-        return ResponseEntity.ok(new ApiResponse<>(true, "Xem nhận xét của sách thành công.", userNotis));
+        ApiResponse<?> response = new ApiResponse<>(
+                true,
+                "Xem nhận xét của sách thành công.",
+                Map.of(
+                        "items", reviewResponses,
+                        "currentPage", reviewPage.getNumber() + 1,
+                        "totalPages", reviewPage.getTotalPages(),
+                        "totalItems", reviewPage.getTotalElements()
+                )
+        );
+
+        return ResponseEntity.ok(response);
     }
+
 
     @PostMapping
     public ResponseEntity<ApiResponse<ReviewResponse>> createReview(@RequestBody CreateReviewRequest request) {
