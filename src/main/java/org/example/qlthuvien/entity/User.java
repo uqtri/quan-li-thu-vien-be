@@ -1,5 +1,6 @@
 package org.example.qlthuvien.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -28,6 +29,7 @@ public class User {
     private ROLE role;
 
     @OneToMany(mappedBy = "user")
+    @JsonManagedReference
     private List<BorrowedBook> lendings;
 
 }

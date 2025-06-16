@@ -1,10 +1,10 @@
 package org.example.qlthuvien.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
-import java.util.Date;
 
 @Entity
 @Table(name = "borrowed_book")
@@ -18,6 +18,7 @@ public class BorrowedBook {
 
     @ManyToOne
     @JoinColumn(name = "user_id")
+    @JsonBackReference
     private User user;
 
     @ManyToOne
@@ -34,11 +35,7 @@ public class BorrowedBook {
     @PrePersist
     public void onCreate() {
         this.borrow_date = LocalDateTime.now();
+        this.status = LendingStatus.BORROWED;
     }
 
-}
-enum LendingStatus {
-    BORROWED,
-    RETURNED,
-    OVERDUE
 }

@@ -16,6 +16,6 @@ public class Catalog {
 
     private String name;
 
-//    @OneToMany(mappedBy = "catalog")
-//    private List<Book> books;
+    @OneToMany(mappedBy = "catalog")
+    private List<Book> books;
 }
