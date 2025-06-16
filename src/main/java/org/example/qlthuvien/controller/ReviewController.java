@@ -3,8 +3,10 @@ package org.example.qlthuvien.controller;
 import lombok.RequiredArgsConstructor;
 import org.example.qlthuvien.dto.notification.CreateNotificationRequest;
 import org.example.qlthuvien.dto.notification.NotificationResponse;
+import org.example.qlthuvien.dto.notification.UpdateNotificationRequest;
 import org.example.qlthuvien.dto.review.CreateReviewRequest;
 import org.example.qlthuvien.dto.review.ReviewResponse;
+import org.example.qlthuvien.dto.review.UpdateReviewRequest;
 import org.example.qlthuvien.entity.Book;
 import org.example.qlthuvien.entity.Notification;
 import org.example.qlthuvien.entity.Review;
@@ -99,4 +101,23 @@ public class ReviewController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateReview(@PathVariable Long id, @RequestBody UpdateReviewRequest request) {
+        Review review = reviewRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy nhận xét."));
+
+        if (request.getRating() != null) {
+            review.setRating(request.getRating());
+        }
+
+        if (request.getComment() != null && !request.getComment().trim().isEmpty()) {
+            review.setComment(request.getComment());
+        }
+
+        Review updated = reviewRepository.save(review);
+
+        return ResponseEntity.ok(
+                new ApiResponse<>(true, "Nhận xét được cập nhật thành công.", reviewMapper.toResponse(updated))
+        );
+    }
 }
