@@ -2,6 +2,7 @@ package org.example.qlthuvien.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.example.qlthuvien.dto.notification.CreateNotificationRequest;
+import org.example.qlthuvien.dto.notification.DeleteNotificationsRequest;
 import org.example.qlthuvien.dto.notification.NotificationResponse;
 import org.example.qlthuvien.dto.notification.UpdateNotificationRequest;
 import org.example.qlthuvien.entity.Notification;
@@ -9,10 +10,13 @@ import org.example.qlthuvien.entity.User;
 import org.example.qlthuvien.mapper.NotificationMapper;
 import org.example.qlthuvien.repository.NotificationRepository;
 import org.example.qlthuvien.repository.UserRepository;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/notifications")
@@ -25,6 +29,7 @@ public class NotificationController {
 
     @GetMapping
     public List<NotificationResponse> getAllNotifications() {
+
         return notificationRepository.findAllByOrderByCreatedAtDesc()
                 .stream()
                 .map(notificationMapper::toResponse)
@@ -67,5 +72,17 @@ public class NotificationController {
         Notification updated = notificationRepository.save(notification);
         return notificationMapper.toResponse(updated);
     }
+
+    @DeleteMapping
+    public ResponseEntity<?> deleteNotifications(@RequestBody DeleteNotificationsRequest deleteNotificationsRequest) {
+        notificationRepository.deleteAllById(deleteNotificationsRequest.getIds());
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("success", true);
+        response.put("deletedCount", deleteNotificationsRequest.getIds().size());
+
+        return ResponseEntity.ok(response);
+    }
+
 
 }
