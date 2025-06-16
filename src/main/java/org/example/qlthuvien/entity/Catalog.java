@@ -1,5 +1,6 @@
 package org.example.qlthuvien.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import java.util.List;
@@ -9,6 +10,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString(exclude = "books")
 public class Catalog {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -16,6 +18,7 @@ public class Catalog {
 
     private String name;
 
-//    @OneToMany(mappedBy = "catalog")
-//    private List<Book> books;
+    @OneToMany(mappedBy = "catalog")
+    @JsonManagedReference
+    private List<Book> books;
 }

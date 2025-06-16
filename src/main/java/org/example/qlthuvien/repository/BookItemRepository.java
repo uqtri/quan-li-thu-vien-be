@@ -8,6 +8,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface BookItemRepository extends JpaRepository<BookItem, Long> {
-
-
+    
 }
