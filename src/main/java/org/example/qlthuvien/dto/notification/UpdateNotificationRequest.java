@@ -10,5 +10,5 @@ import lombok.NoArgsConstructor;
 public class UpdateNotificationRequest
 {
     private String message;
-    private boolean seen;
+    private Boolean seen;
 }

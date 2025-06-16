@@ -72,8 +72,8 @@ public class NotificationController {
         Notification notification = notificationRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy thông báo."));
 
-        notification.setSeen(request.isSeen());
-        notification.setMessage(request.getMessage());
+        if (request.getSeen() != null) notification.setSeen(request.getSeen());
+        if (request.getMessage() !=  null) notification.setMessage(request.getMessage());
 
         Notification updated = notificationRepository.save(notification);
         return ResponseEntity.ok(new ApiResponse<>(true, "Thông báo được cập nhật thành công.", notificationMapper.toResponse(updated)));
