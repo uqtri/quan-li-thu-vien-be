@@ -69,11 +69,23 @@ public class ReviewController {
 
     @PostMapping
     public ResponseEntity<ApiResponse<ReviewResponse>> createReview(@RequestBody CreateReviewRequest request) {
-        User user = userRepository.findById(request.getUser_id())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng."));
+        Long userId = request.getUser_id();
+        Long bookId = request.getBook_id();
 
-        Book book = bookRepository.findById(request.getBook_id())
+        if (reviewRepository.existsByUserIdAndBookId(userId, bookId)) {
+            ApiResponse<ReviewResponse> errorResponse = new ApiResponse<>(
+                    false,
+                    "Bạn đã đánh giá sách này rồi.",
+                    null
+            );
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng."));
+        Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy sách."));
+
         Review review = Review.builder()
                 .user(user)
                 .book(book)
@@ -86,4 +98,5 @@ public class ReviewController {
         ApiResponse<ReviewResponse> response = new ApiResponse<>(true, "Nhận xét đã được tạo.", reviewMapper.toResponse(saved));
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
+
 }
