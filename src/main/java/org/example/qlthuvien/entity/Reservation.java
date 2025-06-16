@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
+import java.util.Date;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -21,4 +21,9 @@ public class Reservation {
     @ManyToOne
     @JoinColumn(name="book_item_id")
     private BookItem bookItem;
+
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date reservationDate = new Date();
+
+    private boolean returned;
 }

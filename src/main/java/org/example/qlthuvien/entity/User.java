@@ -22,13 +22,21 @@ public class User {
     private String email;
     private String password_hash;
 
-    private Date created_at;
+    private Date created_at = new Date();
 
     @Enumerated(EnumType.STRING)
     private ROLE role;
 
+
     @OneToMany(mappedBy = "user")
     private List<BorrowedBook> lendings;
 
+    @OneToMany(mappedBy = "user")
+    private List<Reservation> reservations;
+
+    @PrePersist
+    void onCreate() {
+        this.role = ROLE.USER;
+    }
 }
 
