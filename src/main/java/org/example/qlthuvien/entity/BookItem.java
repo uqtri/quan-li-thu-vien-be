@@ -1,11 +1,13 @@
 package org.example.qlthuvien.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.example.qlthuvien.dto.bookitem.STATUS;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Data
@@ -13,6 +15,7 @@ import java.util.Date;
 @Table(name = "book_item")
 @NoArgsConstructor
 @AllArgsConstructor
+
 public class BookItem {
 
     @Id
@@ -22,11 +25,17 @@ public class BookItem {
     @Enumerated(EnumType.STRING)
     private STATUS status;
 
-    private Date created_at;
+    private LocalDateTime created_at;
 
     @ManyToOne
     @JoinColumn(name="book_id")
+    @JsonBackReference
     private Book book;
+
+    @PrePersist void onCreate() {
+        this.created_at = LocalDateTime.now();
+        this.status = STATUS.AVAILABLE;
+    }
 
  }
 
