@@ -9,6 +9,7 @@ import org.example.qlthuvien.dto.catalog.CatalogResponse;
 @AllArgsConstructor
 @NoArgsConstructor
 public class BookResponse {
+    private Long id;
     private String author;
     private String title;
     private String description;
