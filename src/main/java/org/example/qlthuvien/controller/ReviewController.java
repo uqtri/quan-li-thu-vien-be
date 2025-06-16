@@ -1,14 +1,12 @@
 package org.example.qlthuvien.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.example.qlthuvien.dto.notification.CreateNotificationRequest;
-import org.example.qlthuvien.dto.notification.NotificationResponse;
-import org.example.qlthuvien.dto.notification.UpdateNotificationRequest;
+
 import org.example.qlthuvien.dto.review.CreateReviewRequest;
+import org.example.qlthuvien.dto.review.DeleteReviewsRequest;
 import org.example.qlthuvien.dto.review.ReviewResponse;
 import org.example.qlthuvien.dto.review.UpdateReviewRequest;
 import org.example.qlthuvien.entity.Book;
-import org.example.qlthuvien.entity.Notification;
 import org.example.qlthuvien.entity.Review;
 import org.example.qlthuvien.entity.User;
 import org.example.qlthuvien.mapper.ReviewMapper;
@@ -26,7 +24,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/reviews")
 @RequiredArgsConstructor
-public class ReviewController {
+public class                     ReviewController {
 
     private final ReviewRepository reviewRepository;
     private final ReviewMapper reviewMapper ;
@@ -119,5 +117,14 @@ public class ReviewController {
         return ResponseEntity.ok(
                 new ApiResponse<>(true, "Nhận xét được cập nhật thành công.", reviewMapper.toResponse(updated))
         );
+    }
+
+    @DeleteMapping
+    public ResponseEntity<?> deleteNotifications(@RequestBody DeleteReviewsRequest request) {
+        reviewRepository.deleteAllById(request.getIds());
+
+        return ResponseEntity.ok(new ApiResponse<>(true,
+                "Đã xóa " + request.getIds().size() + " nhận xét.",
+                null));
     }
 }
