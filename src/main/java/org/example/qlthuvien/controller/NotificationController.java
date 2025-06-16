@@ -18,7 +18,7 @@ public class NotificationController {
 
     @GetMapping
     public List<NotificationResponse> getAllNotifications() {
-        return notificationRepository.findAll()
+        return notificationRepository.findAllByOrderByCreatedAtDesc()
                 .stream()
                 .map(notificationMapper::toResponse)
                 .toList();
@@ -26,7 +26,7 @@ public class NotificationController {
 
     @GetMapping("/{userId}")
     public List<NotificationResponse> getNotificationsByUserId(@PathVariable Long userId) {
-        return notificationRepository.findByUserId(userId)
+        return notificationRepository.findByUserIdOrderByCreatedAtDesc(userId)
                 .stream()
                 .map(notificationMapper::toResponse)
                 .toList();
