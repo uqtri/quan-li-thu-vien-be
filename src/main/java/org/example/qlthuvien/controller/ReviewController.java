@@ -37,7 +37,8 @@ public class                     ReviewController {
     @GetMapping
     public ResponseEntity<?> getAllReviews(
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) Float rating
     ) {
         if (page < 1) {
             return ResponseEntity.badRequest().body(
@@ -46,15 +47,22 @@ public class                     ReviewController {
         }
 
         Pageable pageable = PageRequest.of(page - 1, size, Sort.by("createdAt").descending());
-        Page<Review> reviewPage = reviewRepository.findAll(pageable);
+        Page<Review> reviewPage;
 
-        List<ReviewResponse> reviewResponses = reviewPage.getContent().stream()
+        if (rating != null) {
+            reviewPage = reviewRepository.findByRating(rating, pageable);
+        } else {
+            reviewPage = reviewRepository.findAll(pageable);
+        }
+
+        List<ReviewResponse> reviewResponses = reviewPage.getContent()
+                .stream()
                 .map(reviewMapper::toResponse)
                 .toList();
 
         Map<String, Object> response = new HashMap<>();
         response.put("items", reviewResponses);
-        response.put("currentPage", reviewPage.getNumber() + 1); // Trả lại page 1-based
+        response.put("currentPage", reviewPage.getNumber() + 1);
         response.put("totalItems", reviewPage.getTotalElements());
         response.put("totalPages", reviewPage.getTotalPages());
 
@@ -62,17 +70,22 @@ public class                     ReviewController {
     }
 
 
+
     @GetMapping("/user/{userId}")
     public ResponseEntity<?> getReviewsByUserId(
             @PathVariable Long userId,
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) Float rating
     ) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng."));
 
         Pageable pageable = PageRequest.of(page - 1, size, Sort.by("createdAt").descending());
-        Page<Review> reviewPage = reviewRepository.findByUserId(userId, pageable);
+
+        Page<Review> reviewPage = (rating != null)
+                ? reviewRepository.findByUserIdAndRating(userId, rating, pageable)
+                : reviewRepository.findByUserId(userId, pageable);
 
         List<ReviewResponse> reviewResponses = reviewPage.getContent()
                 .stream()
@@ -93,18 +106,21 @@ public class                     ReviewController {
         return ResponseEntity.ok(response);
     }
 
-
     @GetMapping("/book/{bookId}")
     public ResponseEntity<?> getReviewsByBookId(
             @PathVariable Long bookId,
             @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int size
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) Float rating
     ) {
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy sách."));
 
         Pageable pageable = PageRequest.of(page - 1, size, Sort.by("createdAt").descending());
-        Page<Review> reviewPage = reviewRepository.findByBookId(bookId, pageable);
+
+        Page<Review> reviewPage = (rating != null)
+                ? reviewRepository.findByBookIdAndRating(bookId, rating, pageable)
+                : reviewRepository.findByBookId(bookId, pageable);
 
         List<ReviewResponse> reviewResponses = reviewPage.getContent()
                 .stream()
