@@ -13,6 +13,7 @@ public class BookResponse {
     private String author;
     private String title;
     private String description;
+    private String image;
     private CatalogResponse catalog;
 }
 

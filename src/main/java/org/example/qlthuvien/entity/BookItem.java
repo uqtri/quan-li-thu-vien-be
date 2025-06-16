@@ -1,6 +1,7 @@
 package org.example.qlthuvien.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -8,7 +9,6 @@ import lombok.NoArgsConstructor;
 import org.example.qlthuvien.dto.bookitem.STATUS;
 
 import java.time.LocalDateTime;
-import java.util.Date;
 
 @Data
 @Entity
@@ -29,13 +29,12 @@ public class BookItem {
 
     @ManyToOne
     @JoinColumn(name="book_id")
-    @JsonBackReference
+    @JsonIgnoreProperties("bookItems")
     private Book book;
 
     @PrePersist void onCreate() {
         this.created_at = LocalDateTime.now();
         this.status = STATUS.AVAILABLE;
     }
-
  }
 
