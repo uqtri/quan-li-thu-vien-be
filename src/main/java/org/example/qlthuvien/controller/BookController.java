@@ -23,6 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -117,10 +118,13 @@ public class BookController {
         return bookMapper.toResponse(bookRepository.save(exsitedBook));
     }
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteBook(@PathVariable Long id) {
+    public ResponseEntity<Map<String, String>> deleteBook(@PathVariable Long id) {
         try {
             bookRepository.deleteById(id);
-            return ResponseEntity.ok("Book deleted successfully");
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Book deleted successfully");
+
+            return ResponseEntity.ok(response);
         }
         catch (Exception e) {
             System.out.println(e);
