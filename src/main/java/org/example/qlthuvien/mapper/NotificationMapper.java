@@ -8,6 +8,5 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface NotificationMapper {
     @Mapping(source = "user", target = "user")
-
     NotificationResponse toResponse(Notification notification);
 }
