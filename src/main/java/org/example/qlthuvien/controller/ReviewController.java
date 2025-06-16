@@ -69,6 +69,15 @@ public class                     ReviewController {
         return ResponseEntity.ok(new ApiResponse<>(true, "Xem nhận xét thành công.", response));
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getReviewById(@PathVariable Long id) {
+        Review review = reviewRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy nhận xét."));
+
+        ReviewResponse response = reviewMapper.toResponse(review);
+
+        return ResponseEntity.ok(new ApiResponse<>(true, "Xem chi tiết nhận xét thành công.", response));
+    }
 
 
     @GetMapping("/user/{userId}")
