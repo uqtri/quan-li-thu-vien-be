@@ -3,14 +3,17 @@ package org.example.qlthuvien.controller;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.example.qlthuvien.config.CloudinaryConfig;
 import org.example.qlthuvien.dto.book.BookResponse;
 import org.example.qlthuvien.dto.book.CreateBookRequest;
 import org.example.qlthuvien.dto.book.UpdateBookRequest;
 import org.example.qlthuvien.entity.Book;
+import org.example.qlthuvien.entity.Catalog;
 import org.example.qlthuvien.mapper.BookMapper;
 import org.example.qlthuvien.repository.BookRepository;
+import org.example.qlthuvien.repository.CatalogRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -31,6 +34,8 @@ public class BookController {
     private final BookRepository bookRepository;
     private final BookMapper bookMapper;
     private final Cloudinary cloudinary;
+    private final EntityManager entityManager;
+    private final CatalogRepository catalogRepository;
 
     @GetMapping
     Page<BookResponse> getAllBooks(@RequestParam(required = false) String title, Pageable pageable) {
@@ -41,6 +46,14 @@ public class BookController {
     BookResponse createBook(@ModelAttribute CreateBookRequest data) {
 
         Book book = bookMapper.toEntity(data);
+
+        Long catalog_id = data.getCatalog_id();
+        Catalog catalog = entityManager.find(Catalog.class, catalog_id);
+
+        Catalog catalog1 = catalogRepository.findById(catalog_id).orElse(null);
+
+
+        book.setCatalog(catalog);
 
         try{
             MultipartFile image = data.getImage();

@@ -15,6 +15,7 @@ import java.util.Date;
 @Table(name = "book_item")
 @NoArgsConstructor
 @AllArgsConstructor
+
 public class BookItem {
 
     @Id

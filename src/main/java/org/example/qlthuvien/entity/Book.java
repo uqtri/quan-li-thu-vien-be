@@ -1,4 +1,5 @@
 package org.example.qlthuvien.entity;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
@@ -10,6 +11,7 @@ import java.util.List;
 @Table(name = "book")
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString(exclude = "catalog")
 public class Book {
 
     @Id
@@ -22,6 +24,7 @@ public class Book {
     private double avg_rating;
     @ManyToOne
     @JoinColumn(name = "catalog_id")
+    @JsonBackReference
     private Catalog catalog;
 
     @OneToMany(mappedBy = "book")
