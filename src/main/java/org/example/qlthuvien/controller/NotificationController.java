@@ -1,11 +1,16 @@
 package org.example.qlthuvien.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.example.qlthuvien.dto.notification.CreateNotificationRequest;
 import org.example.qlthuvien.dto.notification.NotificationResponse;
+import org.example.qlthuvien.entity.Notification;
+import org.example.qlthuvien.entity.User;
 import org.example.qlthuvien.mapper.NotificationMapper;
 import org.example.qlthuvien.repository.NotificationRepository;
+import org.example.qlthuvien.repository.UserRepository;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -15,6 +20,7 @@ public class NotificationController {
 
     private final NotificationRepository notificationRepository;
     private final NotificationMapper notificationMapper;
+    private final UserRepository userRepository;
 
     @GetMapping
     public List<NotificationResponse> getAllNotifications() {
@@ -30,5 +36,22 @@ public class NotificationController {
                 .stream()
                 .map(notificationMapper::toResponse)
                 .toList();
+    }
+
+
+    @PostMapping
+    public NotificationResponse createNotification(@RequestBody CreateNotificationRequest request) {
+        User user = userRepository.findById(request.getUser_id())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Notification notification = Notification.builder()
+                .user(user)
+                .message(request.getMessage())
+                .seen(false)
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        Notification saved = notificationRepository.save(notification);
+        return notificationMapper.toResponse(saved);
     }
 }

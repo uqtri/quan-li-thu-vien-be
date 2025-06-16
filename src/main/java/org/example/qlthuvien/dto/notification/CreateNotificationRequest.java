@@ -12,8 +12,6 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class CreateNotificationRequest
 {
-    private String user_id;
-    private boolean seen;
+    private Long user_id;
     private String message;
-    private LocalDateTime created_at;
 }
