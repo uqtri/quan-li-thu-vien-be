@@ -24,7 +24,7 @@ public class NotificationController {
                 .toList();
     }
 
-    @GetMapping("/user/{userId}")
+    @GetMapping("/{userId}")
     public List<NotificationResponse> getNotificationsByUserId(@PathVariable Long userId) {
         return notificationRepository.findByUserId(userId)
                 .stream()
