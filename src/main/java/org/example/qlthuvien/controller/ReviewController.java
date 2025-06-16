@@ -1,23 +1,24 @@
 package org.example.qlthuvien.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.example.qlthuvien.dto.notification.CreateNotificationRequest;
 import org.example.qlthuvien.dto.notification.NotificationResponse;
+import org.example.qlthuvien.dto.review.CreateReviewRequest;
 import org.example.qlthuvien.dto.review.ReviewResponse;
 import org.example.qlthuvien.entity.Book;
+import org.example.qlthuvien.entity.Notification;
+import org.example.qlthuvien.entity.Review;
 import org.example.qlthuvien.entity.User;
-import org.example.qlthuvien.mapper.NotificationMapper;
 import org.example.qlthuvien.mapper.ReviewMapper;
 import org.example.qlthuvien.payload.ApiResponse;
 import org.example.qlthuvien.repository.BookRepository;
-import org.example.qlthuvien.repository.NotificationRepository;
 import org.example.qlthuvien.repository.ReviewRepository;
 import org.example.qlthuvien.repository.UserRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -58,11 +59,31 @@ public class ReviewController {
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng."));
 
-        List<ReviewResponse> userNotis = reviewRepository.findByUserIdOrderByCreatedAtDesc(book.getId())
+        List<ReviewResponse> userNotis = reviewRepository.findByBookIdOrderByCreatedAtDesc(book.getId())
                 .stream()
                 .map(reviewMapper::toResponse)
                 .toList();
 
         return ResponseEntity.ok(new ApiResponse<>(true, "Xem nhận xét của sách thành công.", userNotis));
+    }
+
+    @PostMapping
+    public ResponseEntity<ApiResponse<ReviewResponse>> createReview(@RequestBody CreateReviewRequest request) {
+        User user = userRepository.findById(request.getUser_id())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng."));
+
+        Book book = bookRepository.findById(request.getBook_id())
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy sách."));
+        Review review = Review.builder()
+                .user(user)
+                .book(book)
+                .comment(request.getComment())
+                .rating(request.getRating())
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        Review saved = reviewRepository.save(review);
+        ApiResponse<ReviewResponse> response = new ApiResponse<>(true, "Nhận xét đã được tạo.", reviewMapper.toResponse(saved));
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 }
