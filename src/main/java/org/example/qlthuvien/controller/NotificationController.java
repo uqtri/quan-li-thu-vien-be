@@ -3,6 +3,7 @@ package org.example.qlthuvien.controller;
 import lombok.RequiredArgsConstructor;
 import org.example.qlthuvien.dto.notification.CreateNotificationRequest;
 import org.example.qlthuvien.dto.notification.NotificationResponse;
+import org.example.qlthuvien.dto.notification.UpdateNotificationRequest;
 import org.example.qlthuvien.entity.Notification;
 import org.example.qlthuvien.entity.User;
 import org.example.qlthuvien.mapper.NotificationMapper;
@@ -54,4 +55,17 @@ public class NotificationController {
         Notification saved = notificationRepository.save(notification);
         return notificationMapper.toResponse(saved);
     }
+
+    @PutMapping("/{id}")
+    public NotificationResponse updateNotification(@PathVariable Long id, @RequestBody UpdateNotificationRequest request) {
+        Notification notification = notificationRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Notification not found"));
+
+        notification.setSeen(request.isSeen());
+        notification.setMessage(request.getMessage());
+
+        Notification updated = notificationRepository.save(notification);
+        return notificationMapper.toResponse(updated);
+    }
+
 }
