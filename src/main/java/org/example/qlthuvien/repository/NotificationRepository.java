@@ -10,4 +10,8 @@ import java.util.List;
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
     List<Notification> findByUserIdOrderByCreatedAtDesc(Long userId);
     List<Notification> findAllByOrderByCreatedAtDesc();
+    List<Notification> findByUserIdAndSeenOrderByCreatedAtDesc(Long userId, Boolean seen);
+    List<Notification> findBySeenOrderByCreatedAtDesc(Boolean seen);
+
+
 }
