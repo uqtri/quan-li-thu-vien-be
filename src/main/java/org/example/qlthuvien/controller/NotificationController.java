@@ -8,6 +8,7 @@ import org.example.qlthuvien.dto.notification.UpdateNotificationRequest;
 import org.example.qlthuvien.entity.Notification;
 import org.example.qlthuvien.entity.User;
 import org.example.qlthuvien.mapper.NotificationMapper;
+import org.example.qlthuvien.payload.ApiResponse;
 import org.example.qlthuvien.repository.NotificationRepository;
 import org.example.qlthuvien.repository.UserRepository;
 import org.springframework.http.HttpStatus;
@@ -15,10 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
 @RestController
 @RequestMapping("/api/notifications")
 @RequiredArgsConstructor
@@ -29,27 +27,32 @@ public class NotificationController {
     private final UserRepository userRepository;
 
     @GetMapping
-    public List<NotificationResponse> getAllNotifications() {
-
-        return notificationRepository.findAllByOrderByCreatedAtDesc()
+    public ResponseEntity<?> getAllNotifications() {
+        List<NotificationResponse> notifications = notificationRepository.findAllByOrderByCreatedAtDesc()
                 .stream()
                 .map(notificationMapper::toResponse)
                 .toList();
+
+        return ResponseEntity.ok(new ApiResponse<>(true, "Xem thông báo thành công.", notifications));
     }
 
     @GetMapping("/{userId}")
-    public List<NotificationResponse> getNotificationsByUserId(@PathVariable Long userId) {
-        return notificationRepository.findByUserIdOrderByCreatedAtDesc(userId)
+    public ResponseEntity<?> getNotificationsByUserId(@PathVariable Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng."));
+
+        List<NotificationResponse> userNotis = notificationRepository.findByUserIdOrderByCreatedAtDesc(user.getId())
                 .stream()
                 .map(notificationMapper::toResponse)
                 .toList();
+
+        return ResponseEntity.ok(new ApiResponse<>(true, "Xem thông báo của người dùng thành công.", userNotis));
     }
 
-
     @PostMapping
-    public NotificationResponse createNotification(@RequestBody CreateNotificationRequest request) {
+    public ResponseEntity<ApiResponse<NotificationResponse>> createNotification(@RequestBody CreateNotificationRequest request) {
         User user = userRepository.findById(request.getUser_id())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng."));
 
         Notification notification = Notification.builder()
                 .user(user)
@@ -59,50 +62,41 @@ public class NotificationController {
                 .build();
 
         Notification saved = notificationRepository.save(notification);
-        return notificationMapper.toResponse(saved);
+        ApiResponse<NotificationResponse> response = new ApiResponse<>(true, "Thông báo đã được tạo.", notificationMapper.toResponse(saved));
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+
     @PutMapping("/{id}")
-    public NotificationResponse updateNotification(@PathVariable Long id, @RequestBody UpdateNotificationRequest request) {
+    public ResponseEntity<?> updateNotification(@PathVariable Long id, @RequestBody UpdateNotificationRequest request) {
         Notification notification = notificationRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Notification not found"));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy thông báo."));
 
         notification.setSeen(request.isSeen());
         notification.setMessage(request.getMessage());
 
         Notification updated = notificationRepository.save(notification);
-        return notificationMapper.toResponse(updated);
+        return ResponseEntity.ok(new ApiResponse<>(true, "Thông báo được cập nhật thành công.", notificationMapper.toResponse(updated)));
     }
 
     @DeleteMapping
-    public ResponseEntity<?> deleteNotifications(@RequestBody DeleteNotificationsRequest deleteNotificationsRequest) {
-        notificationRepository.deleteAllById(deleteNotificationsRequest.getIds());
+    public ResponseEntity<?> deleteNotifications(@RequestBody DeleteNotificationsRequest request) {
+        notificationRepository.deleteAllById(request.getIds());
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("success", true);
-        response.put("deletedCount", deleteNotificationsRequest.getIds().size());
-
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(new ApiResponse<>(true,
+                "Đã xóa " + request.getIds().size() + " thông báo.",
+                null));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteNotification(@PathVariable Long id) {
-        boolean exists = notificationRepository.existsById(id);
-        if (!exists) {
+        if (!notificationRepository.existsById(id)) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Map.of(
-                            "success", false,
-                            "message", "Notification not found!"
-                    ));
+                    .body(new ApiResponse<>(false, "Không tìm thấy thông báo.", null));
         }
 
         notificationRepository.deleteById(id);
 
-        return ResponseEntity.ok(Map.of(
-                "success", true,
-                "message", "Notification deleted successfully!"
-        ));
+        return ResponseEntity.ok(new ApiResponse<>(true, "Thông báo được xóa thành công.", null));
     }
-
-
 }
