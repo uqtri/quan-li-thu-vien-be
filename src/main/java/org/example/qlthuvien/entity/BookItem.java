@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.example.qlthuvien.dto.bookitem.STATUS;
 
 import java.util.Date;
 
@@ -17,7 +18,10 @@ public class BookItem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private  Long id;
+
+    @Enumerated(EnumType.STRING)
     private STATUS status;
+
     private Date created_at;
 
     @ManyToOne
@@ -26,7 +30,3 @@ public class BookItem {
 
  }
 
-enum STATUS {
-    AVAILABLE,
-    Borrowed,
-}
