@@ -120,11 +120,23 @@ public class                     ReviewController {
     }
 
     @DeleteMapping
-    public ResponseEntity<?> deleteNotifications(@RequestBody DeleteReviewsRequest request) {
+    public ResponseEntity<?> deleteReviews(@RequestBody DeleteReviewsRequest request) {
         reviewRepository.deleteAllById(request.getIds());
 
         return ResponseEntity.ok(new ApiResponse<>(true,
                 "Đã xóa " + request.getIds().size() + " nhận xét.",
                 null));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteReview(@PathVariable Long id) {
+        if (!reviewRepository.existsById(id)) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ApiResponse<>(false, "Không tìm thấy nhận xét.", null));
+        }
+
+        reviewRepository.deleteById(id);
+
+        return ResponseEntity.ok(new ApiResponse<>(true, "Nhận xét được xóa thành công.", null));
     }
 }
