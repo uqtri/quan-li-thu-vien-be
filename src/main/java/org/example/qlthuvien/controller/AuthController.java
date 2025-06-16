@@ -2,7 +2,10 @@ package org.example.qlthuvien.controller;
 
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.example.qlthuvien.dto.user.UserResponse;
+import org.example.qlthuvien.dto.user.CreateUserRequest;
 import org.example.qlthuvien.entity.User;
+import org.example.qlthuvien.mapper.UserMapper;
 import org.example.qlthuvien.repository.UserRepository;
 import org.example.qlthuvien.utils.JwtUtil;
 import org.springframework.http.ResponseCookie;
@@ -20,39 +23,42 @@ public class AuthController {
 
     private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
+    private final UserMapper userMapper;
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody User user) {
+    public ResponseEntity<?> register(@RequestBody CreateUserRequest request) {
         Map<String, Object> response = new HashMap<>();
 
-        if (user.getEmail() == null || user.getPassword_hash() == null) {
+        if (request.getEmail() == null || request.getPassword_hash() == null) {
             response.put("success", false);
             response.put("message", "Email and password are required");
             return ResponseEntity.badRequest().body(response);
         }
 
-        if (userRepository.findByEmail(user.getEmail()) != null) {
+        if (userRepository.findByEmail(request.getEmail()) != null) {
             response.put("success", false);
             response.put("message", "Email already in use");
-            return ResponseEntity.badRequest().body(response);
+            return ResponseEntity.status(409).body(response);
         }
 
-        user.setPassword_hash(BCrypt.hashpw(user.getPassword_hash(), BCrypt.gensalt()));
+        User user = userMapper.toEntity(request);
+        user.setPassword_hash(BCrypt.hashpw(request.getPassword_hash(), BCrypt.gensalt()));
 
         User savedUser = userRepository.save(user);
+        UserResponse userResponse = userMapper.toResponse(savedUser);
 
         response.put("success", true);
         response.put("message", "User registered successfully");
-        response.put("data", savedUser);
-        return ResponseEntity.ok(response);
+
+        return ResponseEntity.status(201).body(response);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody User loginReq, HttpServletResponse servletResponse) {
+    public ResponseEntity<?> login(@RequestBody CreateUserRequest request, HttpServletResponse servletResponse) {
         Map<String, Object> response = new HashMap<>();
 
-        User user = userRepository.findByEmail(loginReq.getEmail());
-        if (user == null || !BCrypt.checkpw(loginReq.getPassword_hash(), user.getPassword_hash())) {
+        User user = userRepository.findByEmail(request.getEmail());
+        if (user == null || !BCrypt.checkpw(request.getPassword_hash(), user.getPassword_hash())) {
             response.put("success", false);
             response.put("message", "Invalid credentials");
             return ResponseEntity.status(401).body(response);
@@ -69,6 +75,8 @@ public class AuthController {
                 .build();
 
         servletResponse.addHeader("Set-Cookie", cookie.toString());
+
+        UserResponse userResponse = userMapper.toResponse(user);
 
         response.put("success", true);
         response.put("message", "Login successful");

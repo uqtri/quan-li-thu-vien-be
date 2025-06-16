@@ -1,17 +1,22 @@
 package org.example.qlthuvien.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.time.LocalDateTime;
 import java.util.Date;
+@Entity
+@Table(name = "reservations")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Entity
+@ToString(exclude = {"user", "book_item"})
 public class Reservation {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,7 +24,7 @@ public class Reservation {
 
     @ManyToOne
     @JoinColumn(name="user_id")
-    @JsonBackReference
+    @JsonIgnoreProperties("reservations")
     private User user;
 
     @ManyToOne
