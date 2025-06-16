@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString(exclude = {"user", "book_item"})
 public class BorrowedBook {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
