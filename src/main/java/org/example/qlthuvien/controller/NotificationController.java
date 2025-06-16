@@ -10,6 +10,7 @@ import org.example.qlthuvien.entity.User;
 import org.example.qlthuvien.mapper.NotificationMapper;
 import org.example.qlthuvien.repository.NotificationRepository;
 import org.example.qlthuvien.repository.UserRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -82,6 +83,25 @@ public class NotificationController {
         response.put("deletedCount", deleteNotificationsRequest.getIds().size());
 
         return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteNotification(@PathVariable Long id) {
+        boolean exists = notificationRepository.existsById(id);
+        if (!exists) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of(
+                            "success", false,
+                            "message", "Notification not found!"
+                    ));
+        }
+
+        notificationRepository.deleteById(id);
+
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Notification deleted successfully!"
+        ));
     }
 
 
