@@ -2,7 +2,11 @@ package org.example.qlthuvien.controller;
 
 import jakarta.servlet.http.Cookie;
 import lombok.RequiredArgsConstructor;
+import org.example.qlthuvien.dto.user.CreateUserRequest;
+import org.example.qlthuvien.dto.user.UpdateUserRequest;
+import org.example.qlthuvien.dto.user.UserResponse;
 import org.example.qlthuvien.entity.User;
+import org.example.qlthuvien.mapper.UserMapper;
 import org.example.qlthuvien.repository.UserRepository;
 import org.example.qlthuvien.utils.JwtUtil;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +22,7 @@ public class UserController {
 
     private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
+    private final UserMapper userMapper;
 
     @GetMapping
     public ResponseEntity<?> getAllUsers(@CookieValue(name = "jwt", required = false) String token) {
@@ -28,8 +33,13 @@ public class UserController {
             return ResponseEntity.status(403).body(response);
         }
 
+        List<UserResponse> userResponses = userRepository.findAll()
+                .stream()
+                .map(userMapper::toResponse)
+                .toList();
+
         response.put("success", true);
-        response.put("data", userRepository.findAll());
+        response.put("data", userResponses);
         return ResponseEntity.ok(response);
     }
 
@@ -60,12 +70,12 @@ public class UserController {
         }
 
         response.put("success", true);
-        response.put("data", user);
+        response.put("data", userMapper.toResponse(user));
         return ResponseEntity.ok(response);
     }
 
     @PostMapping
-    public ResponseEntity<?> createUser(@RequestBody User user, @CookieValue(name = "jwt", required = false) String token) {
+    public ResponseEntity<?> createUser(@RequestBody CreateUserRequest data, @CookieValue(name = "jwt", required = false) String token) {
         Map<String, Object> response = new HashMap<>();
         if (!hasRole(token, "ADMIN")) {
             response.put("success", false);
@@ -73,30 +83,32 @@ public class UserController {
             return ResponseEntity.status(403).body(response);
         }
 
-        if (user.getEmail() == null || user.getPassword_hash() == null) {
+        if (data.getEmail() == null || data.getPassword_hash() == null) {
             response.put("success", false);
             response.put("message", "Email and password are required");
             return ResponseEntity.badRequest().body(response);
         }
 
-        if (userRepository.findByEmail(user.getEmail()) != null) {
+        if (userRepository.findByEmail(data.getEmail()) != null) {
             response.put("success", false);
             response.put("message", "Email already in use");
             return ResponseEntity.status(409).body(response);
         }
 
+        User user = userMapper.toEntity(data);
         user.setPassword_hash(BCrypt.hashpw(user.getPassword_hash(), BCrypt.gensalt()));
+
         User savedUser = userRepository.save(user);
 
         response.put("success", true);
-        response.put("data", savedUser);
+        response.put("data", userMapper.toResponse(savedUser));
         response.put("message", "User created successfully");
         return ResponseEntity.status(201).body(response);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<?> updateUser(@PathVariable Long id,
-                                        @RequestBody User updatedUser,
+                                        @RequestBody UpdateUserRequest data,
                                         @CookieValue(name = "jwt", required = false) String token) {
         Map<String, Object> response = new HashMap<>();
         if (token == null || !jwtUtil.validateToken(token)) {
@@ -122,27 +134,23 @@ public class UserController {
             return ResponseEntity.status(403).body(response);
         }
 
-        if (updatedUser.getName() != null) {
-            existingUser.setName(updatedUser.getName());
-        }
+        // Cập nhật thông tin từ DTO
+        User updatedInfo = userMapper.toEntity(data);
 
-        if (updatedUser.getEmail() != null) {
-            User userWithSameEmail = userRepository.findByEmail(updatedUser.getEmail());
+        if (updatedInfo.getEmail() != null) {
+            User userWithSameEmail = userRepository.findByEmail(updatedInfo.getEmail());
             if (userWithSameEmail != null && !userWithSameEmail.getId().equals(id)) {
                 response.put("success", false);
                 response.put("message", "Email already in use");
                 return ResponseEntity.status(409).body(response);
             }
-            existingUser.setEmail(updatedUser.getEmail());
         }
 
-        if (updatedUser.getRole() != null) {
-            existingUser.setRole(updatedUser.getRole());
-        }
+        User updatedUser = userMapper.updateEntity(existingUser, updatedInfo);
+        User savedUser = userRepository.save(updatedUser);
 
-        User savedUser = userRepository.save(existingUser);
         response.put("success", true);
-        response.put("data", savedUser);
+        response.put("data", userMapper.toResponse(savedUser));
         response.put("message", "User updated successfully");
         return ResponseEntity.ok(response);
     }

@@ -1,15 +1,19 @@
 package org.example.qlthuvien.controller;
 
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+import org.example.qlthuvien.dto.reservation.CreateReservationRequest;
+import org.example.qlthuvien.dto.reservation.ReservationResponse;
 import org.example.qlthuvien.entity.Reservation;
+import org.example.qlthuvien.mapper.ReservationMapper;
 import org.example.qlthuvien.repository.ReservationRepository;
 import org.example.qlthuvien.utils.JwtUtil;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import org.example.qlthuvien.entity.BookItem;
+import org.example.qlthuvien.entity.BorrowedBook;
+import org.example.qlthuvien.entity.User;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/reservations")
@@ -18,91 +22,159 @@ public class ReservationController {
 
     private final ReservationRepository reservationRepository;
     private final JwtUtil jwtUtil;
+    private final ReservationMapper reservationMapper;
+    private final EntityManager entityManager;
 
     @GetMapping
-    public ResponseEntity<?> getAllReservations(@RequestHeader("Authorization") String authHeader) {
-        if (!hasRole(authHeader, "ADMIN")) {
-            return ResponseEntity.status(403).body("Access denied");
+    public ResponseEntity<?> getAllReservations(@CookieValue(name = "jwt", required = false) String token) {
+        if (!hasRole(token, "ADMIN")) {
+            return ResponseEntity.status(403).body(Map.of(
+                    "success", false,
+                    "message", "Access denied"
+            ));
         }
-        return ResponseEntity.ok(reservationRepository.findAll());
+
+        List<ReservationResponse> reservations = reservationRepository.findAll()
+                .stream()
+                .map(reservationMapper::toResponse)
+                .toList();
+
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "data", reservations
+        ));
     }
 
     @GetMapping("/me")
-    public ResponseEntity<?> getMyReservations(@RequestHeader("Authorization") String authHeader) {
-        String email = getEmailFromToken(authHeader);
-        if (email == null) return ResponseEntity.status(401).body("Invalid token");
+    public ResponseEntity<?> getMyReservations(@CookieValue(name = "jwt", required = false) String token) {
+        String email = getEmailFromToken(token);
+        if (email == null) {
+            return ResponseEntity.status(401).body(Map.of(
+                    "success", false,
+                    "message", "Invalid token"
+            ));
+        }
 
-        return ResponseEntity.ok(
-                reservationRepository.findAll()
-                        .stream()
-                        .filter(res -> res.getUser() != null && email.equals(res.getUser().getEmail()))
-                        .toList()
-        );
+        List<ReservationResponse> myReservations = reservationRepository.findAll()
+                .stream()
+                .filter(res -> res.getUser() != null && email.equals(res.getUser().getEmail()))
+                .map(reservationMapper::toResponse)
+                .toList();
+
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "data", myReservations
+        ));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getReservationById(@PathVariable Long id, @RequestHeader("Authorization") String authHeader) {
-        String email = getEmailFromToken(authHeader);
-        String role = getRoleFromToken(authHeader);
-        if (email == null) return ResponseEntity.status(401).body("Invalid token");
+    public ResponseEntity<?> getReservationById(@PathVariable Long id,
+                                                @CookieValue(name = "jwt", required = false) String token) {
+        String email = getEmailFromToken(token);
+        String role = getRoleFromToken(token);
+        if (email == null) {
+            return ResponseEntity.status(401).body(Map.of(
+                    "success", false,
+                    "message", "Invalid token"
+            ));
+        }
 
         Optional<Reservation> opt = reservationRepository.findById(id);
-        if (opt.isEmpty()) return ResponseEntity.status(404).body("Reservation not found");
+        if (opt.isEmpty()) {
+            return ResponseEntity.status(404).body(Map.of(
+                    "success", false,
+                    "message", "Reservation not found"
+            ));
+        }
 
         Reservation res = opt.get();
         if (!email.equals(res.getUser().getEmail()) && !"ADMIN".equals(role)) {
-            return ResponseEntity.status(403).body("Access denied");
+            return ResponseEntity.status(403).body(Map.of(
+                    "success", false,
+                    "message", "Access denied"
+            ));
         }
 
-        return ResponseEntity.ok(res);
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "data", reservationMapper.toResponse(res)
+        ));
     }
-
 
     @PostMapping
-    public ResponseEntity<?> createReservation(@RequestBody Reservation reservation, @RequestHeader("Authorization") String authHeader) {
-        String email = getEmailFromToken(authHeader);
-        if (email == null || reservation.getBookItem() == null) {
-            return ResponseEntity.badRequest().body("Invalid data");
+    public ResponseEntity<?> createReservation(@RequestBody CreateReservationRequest data,
+                                               @CookieValue(name = "jwt", required = false) String token) {
+        String email = getEmailFromToken(token);
+        if (email == null || data.getBook_item_id() == null || data.getUser_id() == null) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", "Invalid data or token"
+            ));
         }
 
-        if (reservation.getReservationDate() == null) {
-            reservation.setReservationDate(new Date());
+        User user = entityManager.find(User.class, data.getUser_id());
+        BookItem bookItem = entityManager.find(BookItem.class, data.getBook_item_id());
+
+        if (user == null || bookItem == null) {
+            return ResponseEntity.status(404).body(Map.of(
+                    "success", false,
+                    "message", "User or BookItem not found"
+            ));
         }
 
-        return ResponseEntity.status(201).body(reservationRepository.save(reservation));
+        Reservation reservation = new Reservation();
+        reservation.setUser(user);
+        reservation.setBookItem(bookItem);
+        reservation.setReturned(false);
+
+        Reservation saved = reservationRepository.save(reservation);
+
+        return ResponseEntity.status(201).body(Map.of(
+                "success", true,
+                "message", "Reservation created successfully",
+                "data", saved
+        ));
     }
 
+
     @PutMapping("/{id}/return")
-    public ResponseEntity<?> markAsReturned(@PathVariable Long id, @RequestHeader("Authorization") String authHeader) {
-        if (!hasRole(authHeader, "ADMIN")) {
-            return ResponseEntity.status(403).body("Access denied");
+    public ResponseEntity<?> markAsReturned(@PathVariable Long id,
+                                            @CookieValue(name = "jwt", required = false) String token) {
+        if (!hasRole(token, "ADMIN")) {
+            return ResponseEntity.status(403).body(Map.of(
+                    "success", false,
+                    "message", "Access denied"
+            ));
         }
 
         Optional<Reservation> opt = reservationRepository.findById(id);
-        if (opt.isEmpty()) return ResponseEntity.status(404).body("Reservation not found");
+        if (opt.isEmpty()) {
+            return ResponseEntity.status(404).body(Map.of(
+                    "success", false,
+                    "message", "Reservation not found"
+            ));
+        }
 
         Reservation res = opt.get();
         res.setReturned(true);
-        return ResponseEntity.ok(reservationRepository.save(res));
+        Reservation saved = reservationRepository.save(res);
+
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Book marked as returned",
+                "data", reservationMapper.toResponse(saved)
+        ));
     }
 
-    private String getEmailFromToken(String authHeader) {
-        String token = extractToken(authHeader);
+    private String getEmailFromToken(String token) {
         return token != null && jwtUtil.validateToken(token) ? jwtUtil.extractEmail(token) : null;
     }
 
-    private String getRoleFromToken(String authHeader) {
-        String token = extractToken(authHeader);
+    private String getRoleFromToken(String token) {
         return token != null && jwtUtil.validateToken(token) ? jwtUtil.extractRole(token) : null;
     }
 
-    private boolean hasRole(String authHeader, String requiredRole) {
-        String token = extractToken(authHeader);
+    private boolean hasRole(String token, String requiredRole) {
         return token != null && jwtUtil.validateToken(token) && requiredRole.equals(jwtUtil.extractRole(token));
-    }
-
-    private String extractToken(String authHeader) {
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) return null;
-        return authHeader.substring(7);
     }
 }
