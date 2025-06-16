@@ -32,9 +32,3 @@ public class User {
 
 }
 
-enum ROLE{
-    ADMIN,
-    USER,
-    LIBRARIAN
-}
-

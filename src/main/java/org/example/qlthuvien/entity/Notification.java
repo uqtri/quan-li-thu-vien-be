@@ -1,9 +1,7 @@
 package org.example.qlthuvien.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
@@ -11,16 +9,22 @@ import java.time.LocalDateTime;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class Notification {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long notification_id;
+    @Column(name = "notification_id")
+    private Long id;
 
     @ManyToOne
-    @JoinColumn(name="user_id")
+    @JoinColumn(name = "user_id", nullable = false) // foreign key
     private User user;
+
     private boolean seen;
+
     private String message;
-    private LocalDateTime created_at;
+
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
 }
