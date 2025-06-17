@@ -6,7 +6,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.example.qlthuvien.entity.BorrowedBook;
 import org.example.qlthuvien.entity.ROLE;
+import org.example.qlthuvien.entity.Reservation;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -14,8 +16,8 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class UserResponse { private Long id;
-
+public class UserResponse {
+    private Long id;
     private String name;
     private String email;
     private String password_hash;
@@ -25,6 +27,7 @@ public class UserResponse { private Long id;
     private ROLE role;
 
     private List<BorrowedBook> lendings;
+    private List<Reservation> reservations;
 }
 
 
