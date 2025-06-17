@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface BookRepository extends JpaRepository<Book, Long> {
 
@@ -16,4 +18,7 @@ public interface BookRepository extends JpaRepository<Book, Long> {
    WHERE (:title IS NULL OR :title = '' OR LOWER(b.title) LIKE LOWER(CONCAT('%', :title, '%')))
    """)
     Page<Book> searchBooks(@Param("title") String title, Pageable pageable);
+
+    @Query("SELECT c.name, COUNT(b.id) FROM Book b JOIN b.catalog c GROUP BY c.name")
+    List<Object[]> countBooksByCatalog();
 }
