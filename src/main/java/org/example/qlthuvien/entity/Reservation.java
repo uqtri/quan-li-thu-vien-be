@@ -40,4 +40,5 @@ public class Reservation {
         this.reservationDate = LocalDateTime.now();
         this.returned = false;
     }
+
 }

@@ -4,6 +4,7 @@ import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.example.qlthuvien.dto.reservation.CreateReservationRequest;
 import org.example.qlthuvien.dto.reservation.ReservationResponse;
+import org.example.qlthuvien.dto.reservation.UpdateReservationRequest;
 import org.example.qlthuvien.entity.Reservation;
 import org.example.qlthuvien.mapper.ReservationMapper;
 import org.example.qlthuvien.repository.ReservationRepository;
@@ -11,7 +12,6 @@ import org.example.qlthuvien.utils.JwtUtil;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.example.qlthuvien.entity.BookItem;
-import org.example.qlthuvien.entity.BorrowedBook;
 import org.example.qlthuvien.entity.User;
 import java.util.*;
 
@@ -139,7 +139,8 @@ public class ReservationController {
 
     @PutMapping("/{id}/return")
     public ResponseEntity<?> markAsReturned(@PathVariable Long id,
-                                            @CookieValue(name = "jwt", required = false) String token) {
+                                            @CookieValue(name = "jwt", required = false) String token,
+                                            @RequestBody UpdateReservationRequest request) {
         if (!hasRole(token, "ADMIN")) {
             return ResponseEntity.status(403).body(Map.of(
                     "success", false,
@@ -156,12 +157,12 @@ public class ReservationController {
         }
 
         Reservation res = opt.get();
-        res.setReturned(true);
+        res.setReturned(request.isReturned());
         Reservation saved = reservationRepository.save(res);
 
         return ResponseEntity.ok(Map.of(
                 "success", true,
-                "message", "Book marked as returned",
+                "message", "Return status updated",
                 "data", reservationMapper.toResponse(saved)
         ));
     }
