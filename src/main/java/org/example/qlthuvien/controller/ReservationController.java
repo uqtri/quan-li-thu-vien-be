@@ -167,6 +167,40 @@ public class ReservationController {
         ));
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteReservationById(@PathVariable Long id,
+                                                @CookieValue(name = "jwt", required = false) String token) {
+        String email = getEmailFromToken(token);
+
+        if (email == null) {
+            return ResponseEntity.status(401).body(Map.of(
+                    "success", false,
+                    "message", "Invalid token"
+            ));
+        }
+
+        Optional<Reservation> opt = reservationRepository.findById(id);
+        if (opt.isEmpty()) {
+            return ResponseEntity.status(404).body(Map.of(
+                    "success", false,
+                    "message", "Reservation not found"
+            ));
+        }
+
+        Reservation res = opt.get();
+        if (!email.equals(res.getUser().getEmail())) {
+            return ResponseEntity.status(403).body(Map.of(
+                    "success", false,
+                    "message", "Access denied"
+            ));
+        }
+
+        reservationRepository.deleteById(id);
+        return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Reservation deleted successfully"
+        ));
+    }
     private String getEmailFromToken(String token) {
         return token != null && jwtUtil.validateToken(token) ? jwtUtil.extractEmail(token) : null;
     }
