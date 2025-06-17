@@ -27,9 +27,12 @@ public class NotificationController {
     private final UserRepository userRepository;
 
     @GetMapping
-    public ResponseEntity<?> getAllNotifications() {
-        List<NotificationResponse> notifications = notificationRepository.findAllByOrderByCreatedAtDesc()
-                .stream()
+    public ResponseEntity<?> getAllNotifications(@RequestParam(required = false) Boolean seen) {
+        List<Notification> notis = (seen != null)
+                ? notificationRepository.findBySeenOrderByCreatedAtDesc(seen)
+                : notificationRepository.findAllByOrderByCreatedAtDesc();
+
+        List<NotificationResponse> notifications = notis.stream()
                 .map(notificationMapper::toResponse)
                 .toList();
 
@@ -37,17 +40,28 @@ public class NotificationController {
     }
 
     @GetMapping("/{userId}")
-    public ResponseEntity<?> getNotificationsByUserId(@PathVariable Long userId) {
+    public ResponseEntity<?> getNotificationsByUserId(
+            @PathVariable Long userId,
+            @RequestParam(required = false) Boolean seen) {
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng."));
 
-        List<NotificationResponse> userNotis = notificationRepository.findByUserIdOrderByCreatedAtDesc(user.getId())
-                .stream()
+        List<Notification> notifications;
+
+        if (seen != null) {
+            notifications = notificationRepository.findByUserIdAndSeenOrderByCreatedAtDesc(userId, seen);
+        } else {
+            notifications = notificationRepository.findByUserIdOrderByCreatedAtDesc(userId);
+        }
+
+        List<NotificationResponse> userNotis = notifications.stream()
                 .map(notificationMapper::toResponse)
                 .toList();
 
-        return ResponseEntity.ok(new ApiResponse<>(true, "Xem thông báo của người dùng thành công.", userNotis));
+        return ResponseEntity.ok(new ApiResponse<>(true, "Xem thông báo người dùng thành công", userNotis));
     }
+
 
     @PostMapping
     public ResponseEntity<ApiResponse<NotificationResponse>> createNotification(@RequestBody CreateNotificationRequest request) {
@@ -72,8 +86,8 @@ public class NotificationController {
         Notification notification = notificationRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy thông báo."));
 
-        notification.setSeen(request.isSeen());
-        notification.setMessage(request.getMessage());
+        if (request.getSeen() != null) notification.setSeen(request.getSeen());
+        if (request.getMessage() !=  null) notification.setMessage(request.getMessage());
 
         Notification updated = notificationRepository.save(notification);
         return ResponseEntity.ok(new ApiResponse<>(true, "Thông báo được cập nhật thành công.", notificationMapper.toResponse(updated)));
