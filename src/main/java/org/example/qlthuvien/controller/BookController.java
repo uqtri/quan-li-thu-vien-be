@@ -87,11 +87,15 @@ public class BookController {
         Book book = bookMapper.toEntity(data);
         Book exsitedBook = bookRepository.findById(id).orElse(null);
 
-        System.out.println(data);
+        System.out.println(exsitedBook);
         if (exsitedBook == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Book not found");
         }
-        if(data.getImage() != null) {
+        System.out.println("ANH");
+        System.out.println(data.getImage());
+        System.out.println((data.getImage()== null));
+        if(data.getImage() != null && !data.getImage().isEmpty()) {
+            System.out.println("TRI");
             try {
                 MultipartFile image = data.getImage();
 
@@ -114,7 +118,12 @@ public class BookController {
                 throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Lỗi đọc file upload", e);
             }
         }
+        System.out.println("HERE");
         exsitedBook = bookMapper.updateEntity(exsitedBook, book);
+        System.out.println("HERE");
+
+        System.out.println(exsitedBook);
+        System.out.println("HERE");
         return bookMapper.toResponse(bookRepository.save(exsitedBook));
     }
     @DeleteMapping("/{id}")

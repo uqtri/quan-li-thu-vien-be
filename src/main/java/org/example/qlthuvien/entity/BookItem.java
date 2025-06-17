@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.example.qlthuvien.dto.bookitem.STATUS;
 
 import java.time.LocalDateTime;
@@ -15,7 +16,7 @@ import java.time.LocalDateTime;
 @Table(name = "book_item")
 @NoArgsConstructor
 @AllArgsConstructor
-
+@ToString(exclude = {"book"})
 public class BookItem {
 
     @Id
