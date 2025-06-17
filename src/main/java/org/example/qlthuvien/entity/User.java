@@ -1,12 +1,8 @@
 package org.example.qlthuvien.entity;
 
-<<<<<<< Updated upstream
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-=======
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
->>>>>>> Stashed changes
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
