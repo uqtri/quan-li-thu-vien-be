@@ -8,6 +8,7 @@ import org.example.qlthuvien.dto.reservation.UpdateReservationRequest;
 import org.example.qlthuvien.entity.Reservation;
 import org.example.qlthuvien.mapper.ReservationMapper;
 import org.example.qlthuvien.repository.ReservationRepository;
+import org.example.qlthuvien.services.EmailService;
 import org.example.qlthuvien.utils.JwtUtil;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,7 +20,7 @@ import java.util.*;
 @RequestMapping("/api/reservations")
 @RequiredArgsConstructor
 public class ReservationController {
-
+    private final EmailService emailService;
     private final ReservationRepository reservationRepository;
     private final JwtUtil jwtUtil;
     private final ReservationMapper reservationMapper;
@@ -141,6 +142,7 @@ public class ReservationController {
     public ResponseEntity<?> markAsReturned(@PathVariable Long id,
                                             @CookieValue(name = "jwt", required = false) String token,
                                             @RequestBody UpdateReservationRequest request) {
+
         if (!hasRole(token, "ADMIN")) {
             return ResponseEntity.status(403).body(Map.of(
                     "success", false,
@@ -159,7 +161,8 @@ public class ReservationController {
         Reservation res = opt.get();
         res.setReturned(request.isReturned());
         Reservation saved = reservationRepository.save(res);
-
+        String email = res.getUser().getEmail();
+        emailService.sendSimpleEmail(email, "Thông báo", "Đơn đặt trước cho cuốn sách " + res.getBookItem().getBook().getTitle() + "đã được hoàn thành");
         return ResponseEntity.ok(Map.of(
                 "success", true,
                 "message", "Return status updated",

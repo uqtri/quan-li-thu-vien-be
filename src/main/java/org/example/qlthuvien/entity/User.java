@@ -34,7 +34,7 @@ public class User {
     private List<BorrowedBook> lendings;
 
     @OneToMany(mappedBy = "user")
-
+    @JsonIgnore
     private List<Reservation> reservations;
 
     @PrePersist

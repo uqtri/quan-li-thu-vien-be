@@ -24,7 +24,7 @@ public class Reservation {
 
     @ManyToOne
     @JoinColumn(name="user_id")
-    @JsonIgnoreProperties("reservations")
+    @JsonIgnore
     private User user;
 
     @ManyToOne
