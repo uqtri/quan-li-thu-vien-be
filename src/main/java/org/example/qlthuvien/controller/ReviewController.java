@@ -14,6 +14,8 @@ import org.example.qlthuvien.payload.ApiResponse;
 import org.example.qlthuvien.repository.BookRepository;
 import org.example.qlthuvien.repository.ReviewRepository;
 import org.example.qlthuvien.repository.UserRepository;
+import org.example.qlthuvien.services.BadgeService;
+import org.example.qlthuvien.services.UserService;
 import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,6 +35,9 @@ public class                     ReviewController {
     private final ReviewMapper reviewMapper ;
     private final UserRepository userRepository;
     private final BookRepository bookRepository;
+    private final UserService userService;
+    private final BadgeService badgeService;
+
 
     @GetMapping
     public ResponseEntity<?> getAllReviews(
@@ -150,7 +155,6 @@ public class                     ReviewController {
         return ResponseEntity.ok(response);
     }
 
-
     @PostMapping
     public ResponseEntity<ApiResponse<ReviewResponse>> createReview(@RequestBody CreateReviewRequest request) {
         Long userId = request.getUser_id();
@@ -179,6 +183,9 @@ public class                     ReviewController {
                 .build();
 
         Review saved = reviewRepository.save(review);
+        userService.addXp(user, 1);
+        badgeService.checkBadges(userId);
+
         ApiResponse<ReviewResponse> response = new ApiResponse<>(true, "Nhận xét đã được tạo.", reviewMapper.toResponse(saved));
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -214,13 +221,11 @@ public class                     ReviewController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteReview(@PathVariable Long id) {
-        if (!reviewRepository.existsById(id)) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ApiResponse<>(false, "Không tìm thấy nhận xét.", null));
-        }
-
+        Review review = reviewRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy nhận xét."));
+        userService.addXp(review.getUser(), -1);
+        badgeService.revokeInvalidBadges(review.getUser().getId());
         reviewRepository.deleteById(id);
-
         return ResponseEntity.ok(new ApiResponse<>(true, "Nhận xét được xóa thành công.", null));
     }
 }
