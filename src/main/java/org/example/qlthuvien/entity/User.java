@@ -31,15 +31,24 @@ public class User {
     private ROLE role;
 
     @OneToMany(mappedBy = "user")
+    @JsonIgnore
     private List<BorrowedBook> lendings;
 
     @OneToMany(mappedBy = "user")
     @JsonIgnore
     private List<Reservation> reservations;
 
+    private String image;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @JsonIgnore
+    private List<Wishlist> wishlists;
+
+
     @PrePersist
     void onCreate() {
         this.role = ROLE.USER;
+        this.image = "";
     }
 }
 

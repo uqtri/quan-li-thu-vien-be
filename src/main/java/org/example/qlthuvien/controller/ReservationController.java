@@ -191,7 +191,7 @@ public class ReservationController {
         }
 
         Reservation res = opt.get();
-        if (!email.equals(res.getUser().getEmail())) {
+        if (!email.equals(res.getUser().getEmail()) && !hasRole(token, "ADMIN")) {
             return ResponseEntity.status(403).body(Map.of(
                     "success", false,
                     "message", "Access denied"
