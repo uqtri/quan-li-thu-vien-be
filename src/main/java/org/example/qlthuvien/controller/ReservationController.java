@@ -162,7 +162,13 @@ public class ReservationController {
         res.setReturned(request.isReturned());
         Reservation saved = reservationRepository.save(res);
         String email = res.getUser().getEmail();
-        emailService.sendSimpleEmail(email, "Thông báo", "Đơn đặt trước cho cuốn sách " + res.getBookItem().getBook().getTitle() + "đã được hoàn thành");
+
+        String bookTitle = res.getBookItem().getBook().getTitle();
+
+        String htmlContent = emailTemplate.replace("{bookTitle}", bookTitle);
+
+        emailService.sendHtmlEmail(email, "Thông báo đặt sách thành công", htmlContent);
+
         return ResponseEntity.ok(Map.of(
                 "success", true,
                 "message", "Return status updated",
