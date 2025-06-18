@@ -12,8 +12,8 @@ import java.util.Date;
 import java.util.List;
 
 @Entity
-@Data
 @Table(name = "\"user\"")
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class User {
@@ -37,6 +37,7 @@ public class User {
     @OneToMany(mappedBy = "user")
     @JsonIgnore
     private List<Reservation> reservations;
+    private Integer xp;
 
     private String image;
 
@@ -48,6 +49,7 @@ public class User {
     @PrePersist
     void onCreate() {
         this.role = ROLE.USER;
+        this.xp = 0;
         this.image = "";
     }
 }
