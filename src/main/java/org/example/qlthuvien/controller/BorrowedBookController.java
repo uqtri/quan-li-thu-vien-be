@@ -48,6 +48,9 @@ public class BorrowedBookController {
         entity.setUser(borrowUser);
         entity.setBook_item(bookItem);
         BorrowedBook saved = borrowedBookRepository.save(entity);
+
+        if (borrowUser.getXp() == null) borrowUser.setXp(1);
+        borrowUser.setXp(borrowUser.getXp() + 1);
         return borrowedBookMapper.toResponse(saved);
     }
 

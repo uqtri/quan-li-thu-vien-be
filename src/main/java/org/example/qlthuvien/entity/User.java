@@ -36,10 +36,13 @@ public class User {
     @OneToMany(mappedBy = "user")
     @JsonIgnore
     private List<Reservation> reservations;
+    private Integer xp;
 
     @PrePersist
     void onCreate() {
         this.role = ROLE.USER;
+        this.xp = 0;
     }
+
 }
 
