@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
+
 public interface ReviewRepository extends JpaRepository<Review, Long> {
     Page<Review> findByUserId(Long userId, Pageable pageable);
 
@@ -15,7 +16,6 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     Page<Review> findByRating(Float rating, Pageable pageable);
     Page<Review> findByUserIdAndRating(Long userId, Float rating, Pageable pageable);
     Page<Review> findByBookIdAndRating(Long bookId, Float rating, Pageable pageable);
-
     int countByUserId(Long userId);
 
 }

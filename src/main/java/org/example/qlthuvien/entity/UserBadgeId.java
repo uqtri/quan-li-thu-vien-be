@@ -1,17 +1,34 @@
 package org.example.qlthuvien.entity;
 
 import jakarta.persistence.Embeddable;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.util.Objects;
 
 @Embeddable
-@Getter @Setter
-@NoArgsConstructor @AllArgsConstructor
+@NoArgsConstructor
+@AllArgsConstructor
 public class UserBadgeId implements Serializable {
     private Long userId;
     private Long badgeId;
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
+
+    public Long getBadgeId() {
+        return badgeId;
+    }
+
+    public void setBadgeId(Long badgeId) {
+        this.badgeId = badgeId;
+    }
 
     @Override
     public boolean equals(Object o) {

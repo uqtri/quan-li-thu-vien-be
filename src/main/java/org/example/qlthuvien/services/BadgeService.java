@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.qlthuvien.entity.Badge;
 import org.example.qlthuvien.entity.User;
 import org.example.qlthuvien.entity.UserBadge;
+import org.example.qlthuvien.entity.UserBadgeId;
 import org.example.qlthuvien.repository.*;
 import org.example.qlthuvien.services.NotificationService;
 import org.springframework.stereotype.Service;
@@ -39,10 +40,24 @@ public class BadgeService {
             if (ownedBadgeIds.contains(badge.getId())) continue;
 
             if (isBadgeUnlocked(badge, borrowCount, reviewCount, xp)) {
-                userBadgeRepo.save(new UserBadge(null, user, badge, LocalDateTime.now()));
+                UserBadge userBadge = UserBadge.builder()
+                        .id(new UserBadgeId(user.getId(), badge.getId()))
+                        .user(user)
+                        .badge(badge)
+                        .grantedAt(LocalDateTime.now())
+                        .build();
+
+                userBadgeRepo.save(userBadge);
+
                 userService.addXp(user, badge.getXpAwarded());
-                notificationService.sendNotification(user, "Bạn đã nhận huy hiệu: " + badge.getName() + " 🎉 (+ " + badge.getXpAwarded() + " XP)");
+
+                notificationService.sendNotification(
+                        user,
+                        "Bạn đã nhận huy hiệu: " + badge.getName() + " 🎉 (+ " + badge.getXpAwarded() + " XP)"
+                );
             }
+
+
         }
     }
 
@@ -51,4 +66,32 @@ public class BadgeService {
                 && (badge.getReviewsRequired() == null || reviewCount >= badge.getReviewsRequired())
                 && (badge.getXpRequired() == null || xp >= badge.getXpRequired());
     }
+
+    public void revokeInvalidBadges(Long userId) {
+        User user = userRepo.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng."));
+
+        int reviewCount = reviewRepo.countByUserId(userId);
+        int borrowCount = borrowRepo.countByUserId(userId);
+        int xp = user.getXp() == null ? 0 : user.getXp();
+
+        List<UserBadge> ownedBadges = userBadgeRepo.findByUserId(userId);
+
+        for (UserBadge userBadge : ownedBadges) {
+            Badge badge = userBadge.getBadge();
+
+            boolean stillValid = isBadgeUnlocked(badge, borrowCount, reviewCount, xp);
+            if (!stillValid) {
+                userBadgeRepo.delete(userBadge);
+
+                if (badge.getXpAwarded() != null && badge.getXpAwarded() > 0) {
+                    userService.addXp(user, -badge.getXpAwarded());
+                }
+
+                notificationService.sendNotification(user,
+                        "Bạn đã bị thu hồi huy hiệu: " + badge.getName() + " 😢");
+            }
+        }
+    }
+
 }

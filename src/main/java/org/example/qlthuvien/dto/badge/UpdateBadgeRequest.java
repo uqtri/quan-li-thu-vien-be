@@ -1,25 +1,17 @@
-package org.example.qlthuvien.entity;
+package org.example.qlthuvien.dto.badge;
 
-import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.example.qlthuvien.entity.BADGE_CATEGORY;
 
 @Data
-@Entity
-@NoArgsConstructor
 @AllArgsConstructor
-@Builder
-public class Badge {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+@NoArgsConstructor
+public class UpdateBadgeRequest {
 
     private String name;
     private String description;
-    @Enumerated(EnumType.STRING)
     private BADGE_CATEGORY category;
     private Integer xpAwarded;
     private String icon_url;

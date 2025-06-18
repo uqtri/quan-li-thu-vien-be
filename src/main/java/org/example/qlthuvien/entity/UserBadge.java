@@ -2,22 +2,18 @@ package org.example.qlthuvien.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.example.qlthuvien.entity.Badge;
-import org.example.qlthuvien.entity.User;
-import org.example.qlthuvien.entity.UserBadgeId;
 
 import java.time.LocalDateTime;
 
+@Data
 @Entity
-@Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class UserBadge {
 
     @EmbeddedId
-    private UserBadgeId id;
+    private UserBadgeId id = new UserBadgeId();
 
     @ManyToOne
     @MapsId("userId")

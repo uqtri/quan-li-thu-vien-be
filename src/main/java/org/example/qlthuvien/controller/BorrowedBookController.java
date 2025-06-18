@@ -10,6 +10,7 @@ import org.example.qlthuvien.entity.BorrowedBook;
 import org.example.qlthuvien.entity.User;
 import org.example.qlthuvien.mapper.BorrowedBookMapper;
 import org.example.qlthuvien.repository.BorrowedBookRepository;
+import org.example.qlthuvien.services.BadgeService;
 import org.example.qlthuvien.services.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,6 +26,7 @@ public class BorrowedBookController {
     private final EntityManager entityManager;
     private final BorrowedBookRepository borrowedBookRepository;
     private final BorrowedBookMapper borrowedBookMapper;
+    private final BadgeService badgeService;
 
     @GetMapping
     public List<BorrowedBookResponse> getAllBorrowedBooks() {
@@ -53,6 +55,7 @@ public class BorrowedBookController {
         BorrowedBook saved = borrowedBookRepository.save(entity);
 
         userService.addXp(borrowUser, 5);
+        badgeService.checkBadges(borrowUser.getId());
         return borrowedBookMapper.toResponse(saved);
     }
 
