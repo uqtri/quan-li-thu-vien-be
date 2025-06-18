@@ -100,4 +100,29 @@ public class AuthController {
         response.put("message", "Signed out successfully");
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping("/me")
+    public ResponseEntity<?> getCurrentUser(@CookieValue(name = "jwt", required = false) String token) {
+        Map<String, Object> response = new HashMap<>();
+
+        if (token == null || !jwtUtil.validateToken(token)) {
+            response.put("success", false);
+            response.put("message", "Invalid or missing token");
+            return ResponseEntity.status(401).body(response);
+        }
+
+        String email = jwtUtil.extractEmail(token);
+        User user = userRepository.findByEmail(email);
+
+        if (user == null) {
+            response.put("success", false);
+            response.put("message", "User not found");
+            return ResponseEntity.status(404).body(response);
+        }
+
+        response.put("success", true);
+        response.put("data", userMapper.toResponse(user));
+        return ResponseEntity.ok(response);
+    }
+
 }
