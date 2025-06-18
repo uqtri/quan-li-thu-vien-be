@@ -29,6 +29,11 @@ public class Badge {
     private Integer borrowedBooksRequired;
 
     @Column(name = "is_deleted")
-    private Boolean isDeleted = false;
+    private Boolean isDeleted;
+
+    @PrePersist
+    public void onCreate() {
+        isDeleted = false;
+    }
 
 }
