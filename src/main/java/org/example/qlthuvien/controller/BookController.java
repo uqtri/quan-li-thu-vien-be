@@ -81,21 +81,35 @@ public class BookController {
         Book savedBook = bookRepository.save(book);
         return bookMapper.toResponse(savedBook);
     }
+    @GetMapping("/{id}")
+    BookResponse getBookById(@PathVariable Long id) {
+        Book book = bookRepository.findById(id).orElse(null);
+        return bookMapper.toResponse(book);
+    }
     @PutMapping("/{id}")
     BookResponse updateBook(@PathVariable Long id, @ModelAttribute UpdateBookRequest data) {
 
         Book book = bookMapper.toEntity(data);
         Book exsitedBook = bookRepository.findById(id).orElse(null);
 
-        System.out.println(exsitedBook);
+//        System.out.println(exsitedBook.getCatalog());
         if (exsitedBook == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Book not found");
         }
-        System.out.println("ANH");
-        System.out.println(data.getImage());
-        System.out.println((data.getImage()== null));
+        if(data.getCatalog_id() != null) {
+
+            Catalog catalog = entityManager.find(Catalog.class, data.getCatalog_id());
+            System.out.println(catalog);
+            if(catalog != null) {
+                exsitedBook.setCatalog(catalog);
+                System.out.println(exsitedBook);
+            }
+        }
+//        System.out.println(exsitedBook);
+//
+//        System.out.println(data.getImage());
+//        System.out.println((data.getImage()== null));
         if(data.getImage() != null && !data.getImage().isEmpty()) {
-            System.out.println("TRI");
             try {
                 MultipartFile image = data.getImage();
 
@@ -118,12 +132,9 @@ public class BookController {
                 throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Lỗi đọc file upload", e);
             }
         }
-        System.out.println("HERE");
         exsitedBook = bookMapper.updateEntity(exsitedBook, book);
-        System.out.println("HERE");
 
-        System.out.println(exsitedBook);
-        System.out.println("HERE");
+//        System.out.println(exsitedBook);
         return bookMapper.toResponse(bookRepository.save(exsitedBook));
     }
     @DeleteMapping("/{id}")
