@@ -10,6 +10,7 @@ import org.example.qlthuvien.entity.BorrowedBook;
 import org.example.qlthuvien.entity.User;
 import org.example.qlthuvien.mapper.BorrowedBookMapper;
 import org.example.qlthuvien.repository.BorrowedBookRepository;
+import org.example.qlthuvien.services.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -40,8 +41,10 @@ public class BorrowedBookController {
         return borrowedBookMapper.toResponse(borrowedBook);
     }
 
+    private final UserService userService;
     @PostMapping
     public BorrowedBookResponse createBorrowedBook(@RequestBody CreateBorrowedBookRequest data) {
+
         User borrowUser = entityManager.find(User.class, data.getUser_id());
         BookItem bookItem = entityManager.find(BookItem.class, data.getBook_item_id());
         BorrowedBook entity = new BorrowedBook();
@@ -49,8 +52,7 @@ public class BorrowedBookController {
         entity.setBook_item(bookItem);
         BorrowedBook saved = borrowedBookRepository.save(entity);
 
-        if (borrowUser.getXp() == null) borrowUser.setXp(1);
-        borrowUser.setXp(borrowUser.getXp() + 1);
+        userService.addXp(borrowUser, 5);
         return borrowedBookMapper.toResponse(saved);
     }
 

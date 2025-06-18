@@ -16,5 +16,6 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     Page<Review> findByUserIdAndRating(Long userId, Float rating, Pageable pageable);
     Page<Review> findByBookIdAndRating(Long bookId, Float rating, Pageable pageable);
 
+    int countByUserId(Long userId);
 
 }

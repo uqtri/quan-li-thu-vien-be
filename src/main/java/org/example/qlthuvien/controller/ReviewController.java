@@ -14,6 +14,7 @@ import org.example.qlthuvien.payload.ApiResponse;
 import org.example.qlthuvien.repository.BookRepository;
 import org.example.qlthuvien.repository.ReviewRepository;
 import org.example.qlthuvien.repository.UserRepository;
+import org.example.qlthuvien.services.UserService;
 import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -150,7 +151,7 @@ public class                     ReviewController {
         return ResponseEntity.ok(response);
     }
 
-
+    private final UserService userService;
     @PostMapping
     public ResponseEntity<ApiResponse<ReviewResponse>> createReview(@RequestBody CreateReviewRequest request) {
         Long userId = request.getUser_id();
@@ -179,6 +180,7 @@ public class                     ReviewController {
                 .build();
 
         Review saved = reviewRepository.save(review);
+        userService.addXp(user, 1);
         ApiResponse<ReviewResponse> response = new ApiResponse<>(true, "Nhận xét đã được tạo.", reviewMapper.toResponse(saved));
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
