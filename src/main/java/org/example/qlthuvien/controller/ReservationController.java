@@ -166,7 +166,7 @@ public class ReservationController {
         String bookTitle = res.getBookItem().getBook().getTitle();
 
         String htmlContent = emailService.loadEmailTemplate("emailTemplate.html").replace("{bookTitle}", bookTitle);
-
+        System.out.println(htmlContent);
         emailService.sendHtmlEmail(email, "Thông báo đặt sách thành công", htmlContent);
 
         return ResponseEntity.ok(Map.of(
