@@ -1,5 +1,7 @@
 package org.example.qlthuvien.controller;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import jakarta.servlet.http.Cookie;
 import lombok.RequiredArgsConstructor;
 import org.example.qlthuvien.dto.user.CreateUserRequest;
@@ -9,9 +11,12 @@ import org.example.qlthuvien.entity.User;
 import org.example.qlthuvien.mapper.UserMapper;
 import org.example.qlthuvien.repository.UserRepository;
 import org.example.qlthuvien.utils.JwtUtil;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.*;
 
@@ -23,7 +28,7 @@ public class UserController {
     private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
     private final UserMapper userMapper;
-
+    private final Cloudinary cloudinary;
     @GetMapping
     public ResponseEntity<?> getAllUsers(@CookieValue(name = "jwt", required = false) String token) {
         Map<String, Object> response = new HashMap<>();
@@ -107,11 +112,12 @@ public class UserController {
         return ResponseEntity.status(201).body(response);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping(value = "/{id}")
     public ResponseEntity<?> updateUser(@PathVariable Long id,
-                                        @RequestBody UpdateUserRequest data,
+                                        @ModelAttribute UpdateUserRequest data,
                                         @CookieValue(name = "jwt", required = false) String token) {
         Map<String, Object> response = new HashMap<>();
+
         if (token == null || !jwtUtil.validateToken(token)) {
             response.put("success", false);
             response.put("message", "Invalid or missing token");
@@ -135,7 +141,7 @@ public class UserController {
             return ResponseEntity.status(403).body(response);
         }
 
-        // Cập nhật thông tin từ DTO
+        // Cập nhật thông tin (trừ image) từ DTO
         User updatedInfo = userMapper.toEntity(data);
 
         if (updatedInfo.getEmail() != null) {
@@ -147,6 +153,28 @@ public class UserController {
             }
         }
 
+        // Cập nhật ảnh nếu có
+        MultipartFile image = data.getImage();
+        if (image != null && !image.isEmpty()) {
+            try {
+                String base64String = "data:" + image.getContentType() + ";base64," +
+                        Base64.getEncoder().encodeToString(image.getBytes());
+
+                Map uploadResult = cloudinary.uploader().upload(base64String, ObjectUtils.asMap(
+                        "use_filename", true,
+                        "unique_filename", false,
+                        "overwrite", true
+                ));
+
+                String secure_url = uploadResult.get("secure_url").toString();
+                existingUser.setImage(secure_url);
+
+            } catch (Exception e) {
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Lỗi khi upload hình ảnh", e);
+            }
+        }
+
+        // Cập nhật các trường còn lại
         User updatedUser = userMapper.updateEntity(existingUser, updatedInfo);
         User savedUser = userRepository.save(updatedUser);
 
@@ -155,6 +183,7 @@ public class UserController {
         response.put("message", "User updated successfully");
         return ResponseEntity.ok(response);
     }
+
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable Long id, @CookieValue(name = "jwt", required = false) String token) {
