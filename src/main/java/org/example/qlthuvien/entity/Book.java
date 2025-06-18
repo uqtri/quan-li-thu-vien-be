@@ -29,7 +29,7 @@ public class Book {
     private Catalog catalog;
 
     @OneToMany(mappedBy = "book")
-    @JsonManagedReference
+    @JsonIgnoreProperties({"book"})
     private List<BookItem> bookItems;
 
     @PrePersist void onCreate() {

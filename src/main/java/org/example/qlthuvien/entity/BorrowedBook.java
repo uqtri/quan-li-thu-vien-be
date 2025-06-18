@@ -1,6 +1,7 @@
 package org.example.qlthuvien.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -18,8 +19,8 @@ public class BorrowedBook {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
-    @JsonBackReference
+    @JoinColumn(name="user_id")
+    @JsonIgnoreProperties("lendings")
     private User user;
 
     @ManyToOne

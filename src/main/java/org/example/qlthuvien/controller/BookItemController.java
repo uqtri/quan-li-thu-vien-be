@@ -18,6 +18,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @RestController
 @RequestMapping("/api/book-items")
 @RequiredArgsConstructor
@@ -47,7 +50,13 @@ public class BookItemController {
     public BookItemResponse updateBookItem(@PathVariable Long id, @RequestBody UpdateBookItemRequest data) {
         BookItem bookItem = bookItemMapper.toEntity(data);
         BookItem existedBookItem = bookItemRepository.findById(id).orElse(null);
-        return bookItemMapper.toResponse(bookItemRepository.save(bookItemMapper.toEntity(data)));
+        existedBookItem = bookItemMapper.updateEntity(existedBookItem, bookItem);
+
+        return bookItemMapper.toResponse(bookItemRepository.save(existedBookItem));
+    }
+    @GetMapping("/book/{id}")
+    public List<BookItemResponse> getAllBookItemsByBookId(@PathVariable Long id) {
+        return bookItemRepository.findBookItemsByBookId(id).stream().map(bookItemMapper::toResponse).toList();
     }
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteBookItem(@PathVariable Long id) {
