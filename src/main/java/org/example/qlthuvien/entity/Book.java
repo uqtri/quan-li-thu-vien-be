@@ -1,5 +1,6 @@
 package org.example.qlthuvien.entity;
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
@@ -29,7 +30,7 @@ public class Book {
     private Catalog catalog;
 
     @OneToMany(mappedBy = "book")
-    @JsonIgnoreProperties({"book"})
+    @JsonIgnore
     private List<BookItem> bookItems;
 
     @PrePersist void onCreate() {

@@ -162,7 +162,13 @@ public class ReservationController {
         res.setReturned(request.isReturned());
         Reservation saved = reservationRepository.save(res);
         String email = res.getUser().getEmail();
-        emailService.sendSimpleEmail(email, "Thông báo", "Đơn đặt trước cho cuốn sách " + res.getBookItem().getBook().getTitle() + "đã được hoàn thành");
+
+        String bookTitle = res.getBookItem().getBook().getTitle();
+
+        String htmlContent = emailService.loadEmailTemplate("emailTemplate.html").replace("{bookTitle}", bookTitle);
+        System.out.println(htmlContent);
+        emailService.sendHtmlEmail(email, "Thông báo đặt sách thành công", htmlContent);
+
         return ResponseEntity.ok(Map.of(
                 "success", true,
                 "message", "Return status updated",
@@ -191,7 +197,7 @@ public class ReservationController {
         }
 
         Reservation res = opt.get();
-        if (!email.equals(res.getUser().getEmail())) {
+        if (!email.equals(res.getUser().getEmail()) && !hasRole(token, "ADMIN")) {
             return ResponseEntity.status(403).body(Map.of(
                     "success", false,
                     "message", "Access denied"
