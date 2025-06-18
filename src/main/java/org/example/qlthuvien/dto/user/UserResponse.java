@@ -28,6 +28,8 @@ public class UserResponse {
 
     private List<BorrowedBook> lendings;
     private List<Reservation> reservations;
+
+    private Integer xp;
 }
 
 
