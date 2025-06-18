@@ -8,6 +8,11 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+
 @Service
 @RequiredArgsConstructor
 public class EmailService {
@@ -34,6 +39,18 @@ public class EmailService {
         } catch (MessagingException e) {
             throw new RuntimeException("Gửi email HTML thất bại", e);
         }
+
+
     }
+
+    public String loadEmailTemplate(String filename) {
+        try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream("templates/" + filename)) {
+            if (inputStream == null) throw new FileNotFoundException("Không tìm thấy template: " + filename);
+            return new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new RuntimeException("Lỗi đọc template HTML", e);
+        }
+    }
+
 
 }
