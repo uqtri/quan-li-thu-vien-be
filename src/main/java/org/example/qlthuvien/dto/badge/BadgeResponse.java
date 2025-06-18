@@ -23,4 +23,6 @@ public class BadgeResponse {
     private Integer xpRequired;
     private Integer reviewsRequired;
     private Integer borrowedBooksRequired;
+
+
 }

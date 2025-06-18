@@ -27,4 +27,8 @@ public class Badge {
     private Integer xpRequired;
     private Integer reviewsRequired;
     private Integer borrowedBooksRequired;
+
+    @Column(name = "is_deleted")
+    private Boolean isDeleted = false;
+
 }
