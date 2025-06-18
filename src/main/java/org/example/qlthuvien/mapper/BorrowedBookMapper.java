@@ -5,6 +5,7 @@ import org.example.qlthuvien.dto.borrowedbook.CreateBorrowedBookRequest;
 import org.example.qlthuvien.dto.borrowedbook.UpdateBorrowedBookRequest;
 import org.example.qlthuvien.entity.BorrowedBook;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 
@@ -17,6 +18,7 @@ public interface BorrowedBookMapper {
 
     BorrowedBook toEntity(CreateBorrowedBookRequest dto);
 
+    @Mapping(source = "return_date", target = "return_date")
     BorrowedBook toEntity(UpdateBorrowedBookRequest dto);
 
     BorrowedBook updateEntity(@MappingTarget BorrowedBook target, BorrowedBook source);

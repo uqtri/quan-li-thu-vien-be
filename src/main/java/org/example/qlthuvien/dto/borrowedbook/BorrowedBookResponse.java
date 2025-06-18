@@ -19,5 +19,6 @@ public class BorrowedBookResponse {
     private User user;
     private LocalDateTime borrow_date;
     private LocalDateTime return_date;
+    private LocalDateTime due_date;
     private LendingStatus status;
 }

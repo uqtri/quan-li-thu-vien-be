@@ -57,6 +57,7 @@ public class BorrowedBookController {
                 .orElseThrow(() -> new RuntimeException("BorrowedBook not found with ID: " + id));
 
         existing = borrowedBookMapper.updateEntity(existing, borrowedBookMapper.toEntity(data));
+        BorrowedBook temp = borrowedBookMapper.toEntity(data);
         BorrowedBook updated = borrowedBookRepository.save(existing);
         return borrowedBookMapper.toResponse(updated);
     }
