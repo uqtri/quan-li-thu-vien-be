@@ -2,13 +2,16 @@ package org.example.qlthuvien.controller;
 
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+import org.example.qlthuvien.dto.bookitem.STATUS;
 import org.example.qlthuvien.dto.borrowedbook.BorrowedBookResponse;
 import org.example.qlthuvien.dto.borrowedbook.CreateBorrowedBookRequest;
 import org.example.qlthuvien.dto.borrowedbook.UpdateBorrowedBookRequest;
 import org.example.qlthuvien.entity.BookItem;
 import org.example.qlthuvien.entity.BorrowedBook;
+import org.example.qlthuvien.entity.LendingStatus;
 import org.example.qlthuvien.entity.User;
 import org.example.qlthuvien.mapper.BorrowedBookMapper;
+import org.example.qlthuvien.repository.BookItemRepository;
 import org.example.qlthuvien.repository.BorrowedBookRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,6 +26,7 @@ import java.util.Map;
 public class BorrowedBookController {
     private final EntityManager entityManager;
     private final BorrowedBookRepository borrowedBookRepository;
+    private final BookItemRepository bookItemRepository;
     private final BorrowedBookMapper borrowedBookMapper;
 
     @GetMapping
@@ -48,7 +52,8 @@ public class BorrowedBookController {
         entity.setUser(borrowUser);
         entity.setBook_item(bookItem);
         BorrowedBook saved = borrowedBookRepository.save(entity);
-
+        bookItem.setStatus(STATUS.Borrowed);
+        bookItemRepository.save(bookItem);
         if (borrowUser.getXp() == null) borrowUser.setXp(1);
         borrowUser.setXp(borrowUser.getXp() + 1);
         return borrowedBookMapper.toResponse(saved);
@@ -60,8 +65,18 @@ public class BorrowedBookController {
                 .orElseThrow(() -> new RuntimeException("BorrowedBook not found with ID: " + id));
 
         existing = borrowedBookMapper.updateEntity(existing, borrowedBookMapper.toEntity(data));
+
         BorrowedBook temp = borrowedBookMapper.toEntity(data);
         BorrowedBook updated = borrowedBookRepository.save(existing);
+        BookItem bookItem = existing.getBook_item();
+        if (updated.getStatus() == LendingStatus.BORROWED) {
+            bookItem.setStatus(STATUS.Borrowed);
+
+        }
+        if (updated.getStatus() == LendingStatus.RETURNED) {
+            bookItem.setStatus(STATUS.AVAILABLE);
+        }
+        bookItemRepository.save(bookItem);
         return borrowedBookMapper.toResponse(updated);
     }
 
