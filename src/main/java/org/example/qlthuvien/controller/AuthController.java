@@ -7,6 +7,7 @@ import org.example.qlthuvien.dto.user.CreateUserRequest;
 import org.example.qlthuvien.entity.User;
 import org.example.qlthuvien.mapper.UserMapper;
 import org.example.qlthuvien.repository.UserRepository;
+import org.example.qlthuvien.services.BadgeService;
 import org.example.qlthuvien.utils.JwtUtil;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -24,6 +25,7 @@ public class AuthController {
     private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
     private final UserMapper userMapper;
+    private final BadgeService badgeService;
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody CreateUserRequest request) {
@@ -46,6 +48,8 @@ public class AuthController {
 
         User savedUser = userRepository.save(user);
         UserResponse userResponse = userMapper.toResponse(savedUser);
+        badgeService.checkBadges(user.getId());
+
 
         response.put("success", true);
         response.put("message", "User registered successfully");
