@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import org.example.qlthuvien.entity.BorrowedBook;
 import org.example.qlthuvien.entity.ROLE;
 import org.example.qlthuvien.entity.Reservation;
+import org.example.qlthuvien.entity.Wishlist;
 
 import java.time.LocalDateTime;
 import java.util.Date;
@@ -30,6 +31,7 @@ public class UserResponse {
     private List<Reservation> reservations;
 
     private Integer xp;
+    private List<Wishlist> wishlists;
 }
 
 

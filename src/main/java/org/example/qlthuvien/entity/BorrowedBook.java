@@ -1,6 +1,7 @@
 package org.example.qlthuvien.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
@@ -20,7 +21,7 @@ public class BorrowedBook {
 
     @ManyToOne
     @JoinColumn(name="user_id")
-    @JsonIgnoreProperties("lendings")
+    @JsonIgnore
     private User user;
 
     @ManyToOne
@@ -28,8 +29,8 @@ public class BorrowedBook {
     private BookItem book_item;
 
     private LocalDateTime borrow_date;
-
     private LocalDateTime return_date;
+    private LocalDateTime due_date;
 
     @Enumerated(EnumType.STRING)
     private LendingStatus status;
@@ -37,6 +38,7 @@ public class BorrowedBook {
     @PrePersist
     public void onCreate() {
         this.borrow_date = LocalDateTime.now();
+        this.due_date = this.borrow_date.plusDays(30) ;
         this.status = LendingStatus.BORROWED;
     }
 
