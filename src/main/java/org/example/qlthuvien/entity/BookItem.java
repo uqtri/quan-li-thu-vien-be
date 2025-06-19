@@ -31,7 +31,7 @@ public class BookItem {
 
     @ManyToOne
     @JoinColumn(name="book_id")
-
+    @JsonIgnore
     private Book book;
 
     @PrePersist void onCreate() {
