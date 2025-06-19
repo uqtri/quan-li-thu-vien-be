@@ -26,11 +26,11 @@ public class Book {
     private double avg_rating;
     @ManyToOne
     @JoinColumn(name = "catalog_id")
-    @JsonBackReference
+    @JsonIgnoreProperties("book")
     private Catalog catalog;
 
     @OneToMany(mappedBy = "book")
-    @JsonIgnore
+    @JsonIgnoreProperties("book")
     private List<BookItem> bookItems;
 
     @PrePersist void onCreate() {

@@ -1,5 +1,7 @@
 package org.example.qlthuvien.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
@@ -19,6 +21,6 @@ public class Catalog {
     private String name;
 
     @OneToMany(mappedBy = "catalog")
-    @JsonManagedReference
+    @JsonIgnore
     private List<Book> books;
 }
