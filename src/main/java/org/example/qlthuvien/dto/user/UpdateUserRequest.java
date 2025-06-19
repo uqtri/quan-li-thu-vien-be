@@ -15,7 +15,6 @@ import org.springframework.web.multipart.MultipartFile;
 public class UpdateUserRequest {
     private String name;
     private String email;
-    private ROLE role;
     private MultipartFile image;
 }
 

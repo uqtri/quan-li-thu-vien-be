@@ -21,7 +21,6 @@ public class UserResponse {
     private Long id;
     private String name;
     private String email;
-    private String password_hash;
     private String image;
     private Date created_at;
 
