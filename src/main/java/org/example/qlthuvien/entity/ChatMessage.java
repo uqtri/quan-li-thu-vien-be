@@ -1,5 +1,6 @@
 package org.example.qlthuvien.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -14,7 +15,11 @@ public class ChatMessage {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+
     private String senderName;
+    private Long senderId;
+    private String image;
+
     private String content;
     private LocalDateTime timestamp;
 
