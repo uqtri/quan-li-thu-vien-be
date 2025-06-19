@@ -15,9 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-@RequiredArgsConstructor
 public class PythonApiService {
-
     @Value("${python.backend_url}")
     private String pythonUrl;
 
@@ -76,5 +74,4 @@ public class PythonApiService {
 
         return ResponseEntity.status(response.getStatusCode()).body(response.getBody());
     }
-
 }
