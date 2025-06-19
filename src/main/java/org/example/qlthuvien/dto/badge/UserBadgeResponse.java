@@ -13,6 +13,7 @@ public class UserBadgeResponse {
     private String badgeName;
     private String iconUrl;
     private String description;
+    private String category;
     private LocalDateTime grantedAt;
 }
 

@@ -12,6 +12,8 @@ public interface UserBadgeMapper {
     @Mapping(source = "badge.name", target = "badgeName")
     @Mapping(source = "badge.icon_url", target = "iconUrl")
     @Mapping(source = "badge.description", target = "description")
+    @Mapping(source = "badge.category", target = "category")
+
     UserBadgeResponse toResponse(UserBadge userBadge);
 }
 
