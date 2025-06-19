@@ -11,13 +11,13 @@ import org.example.qlthuvien.entity.BookItem;
 import org.example.qlthuvien.mapper.BookItemMapper;
 import org.example.qlthuvien.repository.BookItemRepository;
 import org.example.qlthuvien.repository.BookRepository;
+import org.example.qlthuvien.repository.ReservationRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
-
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -28,7 +28,7 @@ public class BookItemController {
 
     private final BookItemRepository bookItemRepository;
     private final BookItemMapper bookItemMapper;
-
+    private final ReservationRepository reservationRepository;
     private final EntityManager entityManager;
 
     private final BookRepository bookRepository;
@@ -44,6 +44,10 @@ public class BookItemController {
         Book book = entityManager.find(Book.class, data.getBook_id());
         bookItem.setBook(book);
 
+        Long bookId = bookItem.getBook().getId();
+        reservationRepository.updateReturnedByBookItemBookId(bookId);
+
+
         return bookItemMapper.toResponse(bookItemRepository.save(bookItem));
      }
     @PutMapping("/{id}")
@@ -51,6 +55,18 @@ public class BookItemController {
         BookItem bookItem = bookItemMapper.toEntity(data);
         BookItem existedBookItem = bookItemRepository.findById(id).orElse(null);
         existedBookItem = bookItemMapper.updateEntity(existedBookItem, bookItem);
+
+        if ("AVAILABLE".equalsIgnoreCase(String.valueOf(existedBookItem.getStatus()))) {
+            Long bookId = existedBookItem.getBook().getId();
+            reservationRepository.updateReturnedByBookItemBookId(bookId);
+        } else {
+            Long bookId = existedBookItem.getBook().getId();
+            long availableCount = bookItemRepository.countAvailableByBookId(bookId);
+            System.out.println(availableCount);
+            if (availableCount - 1 == 0) {
+                reservationRepository.updateReturnedFalseByBookItemBookId(bookId); // thêm cái này
+            }
+        }
 
         return bookItemMapper.toResponse(bookItemRepository.save(existedBookItem));
     }
@@ -61,11 +77,22 @@ public class BookItemController {
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteBookItem(@PathVariable Long id) {
         try {
+            BookItem bookItem = bookItemRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("BookItem not found"));
+
+            Long bookId = bookItem.getBook().getId();
+
             bookItemRepository.deleteById(id);
+
+            long availableCount = bookItemRepository.countAvailableByBookId(bookId);
+            if (availableCount == 0) {
+                reservationRepository.updateReturnedFalseByBookItemBookId(bookId);
+            }
+
             return ResponseEntity.ok("Book item deleted");
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             return ResponseEntity.status(500).body(e.getMessage());
         }
     }
+
 }

@@ -15,5 +15,7 @@ public interface BookItemRepository extends JpaRepository<BookItem, Long> {
 
     @Query("SELECT b FROM BookItem b WHERE b.book.id = :bookId")
     List<BookItem> findBookItemsByBookId(@Param("bookId") Long bookId);
+    @Query("SELECT COUNT(b) FROM BookItem b WHERE b.book.id = :bookId AND b.status = 'AVAILABLE'")
+    long countAvailableByBookId(@Param("bookId") Long bookId);
 
 }
