@@ -1,6 +1,7 @@
 package org.example.qlthuvien.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -24,6 +25,6 @@ public class Wishlist {
 
     @ManyToOne
     @JoinColumn(name = "book_id")
-
+    @JsonIgnoreProperties("bookItems")
     private Book book;
 }

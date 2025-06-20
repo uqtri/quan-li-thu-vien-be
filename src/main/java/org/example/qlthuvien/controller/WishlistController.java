@@ -1,5 +1,6 @@
 package org.example.qlthuvien.controller;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.example.qlthuvien.entity.*;
 import org.example.qlthuvien.repository.*;
@@ -41,8 +42,8 @@ public class WishlistController {
         return ResponseEntity.ok("Thêm vào wishlist thành công");
     }
 
-    // Xoá sách khỏi wishlist
     @DeleteMapping("/{userId}/{bookId}")
+    @Transactional
     public ResponseEntity<?> removeFromWishlist(@PathVariable Long userId, @PathVariable Long bookId) {
         Optional<User> userOpt = userRepository.findById(userId);
         Optional<Book> bookOpt = bookRepository.findById(bookId);

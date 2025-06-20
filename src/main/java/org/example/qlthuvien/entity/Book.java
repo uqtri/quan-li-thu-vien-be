@@ -33,6 +33,7 @@ public class Book {
     private List<BookItem> bookItems;
 
     @OneToMany (mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<Wishlist> wishLists;
 
     @PrePersist void onCreate() {
