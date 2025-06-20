@@ -22,7 +22,7 @@ public class UserResponse {
     private String name;
     private String email;
     private String password_hash;
-
+    private String image;
     private Date created_at;
 
     private ROLE role;

@@ -5,8 +5,10 @@ import lombok.RequiredArgsConstructor;
 import org.example.qlthuvien.dto.reservation.CreateReservationRequest;
 import org.example.qlthuvien.dto.reservation.ReservationResponse;
 import org.example.qlthuvien.dto.reservation.UpdateReservationRequest;
+import org.example.qlthuvien.entity.Book;
 import org.example.qlthuvien.entity.Reservation;
 import org.example.qlthuvien.mapper.ReservationMapper;
+import org.example.qlthuvien.repository.BookRepository;
 import org.example.qlthuvien.repository.ReservationRepository;
 import org.example.qlthuvien.services.EmailService;
 import org.example.qlthuvien.utils.JwtUtil;
@@ -25,7 +27,7 @@ public class ReservationController {
     private final JwtUtil jwtUtil;
     private final ReservationMapper reservationMapper;
     private final EntityManager entityManager;
-
+    private final BookRepository bookRepository;
     @GetMapping
     public ResponseEntity<?> getAllReservations(@CookieValue(name = "jwt", required = false) String token) {
         if (!hasRole(token, "ADMIN")) {
@@ -116,17 +118,27 @@ public class ReservationController {
         User user = entityManager.find(User.class, data.getUser_id());
         BookItem bookItem = entityManager.find(BookItem.class, data.getBook_item_id());
 
-        if (user == null || bookItem == null) {
+        Book book = bookRepository.findById(bookItem.getBook().getId())
+                .orElseThrow(() -> new RuntimeException("Book not found"));
+
+        boolean hasAvailableItem = book.getBookItems().stream()
+                .anyMatch(item -> "AVAILABLE".equalsIgnoreCase(String.valueOf(item.getStatus())));
+
+        Reservation reservation = new Reservation();
+
+        reservation.setReturned(hasAvailableItem);
+
+        reservationRepository.save(reservation);
+
+        if (user == null) {
             return ResponseEntity.status(404).body(Map.of(
                     "success", false,
                     "message", "User or BookItem not found"
             ));
         }
 
-        Reservation reservation = new Reservation();
         reservation.setUser(user);
         reservation.setBookItem(bookItem);
-        reservation.setReturned(false);
 
         Reservation saved = reservationRepository.save(reservation);
 
