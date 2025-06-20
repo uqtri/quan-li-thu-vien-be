@@ -34,6 +34,10 @@ public class BookItem {
     @JsonIgnoreProperties("bookItems")
     private Book book;
 
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "borrowed_book_id")
+
+    private BorrowedBook borrowedBook;
     @PrePersist void onCreate() {
         this.created_at = LocalDateTime.now();
         this.status = STATUS.AVAILABLE;
