@@ -128,9 +128,13 @@ public class ReservationController {
 
         Reservation reservation = new Reservation();
 
-        reservation.setReturned(availableCount > 0);
-
-        reservationRepository.save(reservation);
+        boolean alreadyExists = reservationRepository.existsByUserAndBookItem(user, bookItem);
+        if (alreadyExists) {
+            return ResponseEntity.status(409).body(Map.of(
+                    "success", false,
+                    "message", "Reservation already exists for this user and book item"
+            ));
+        }
 
         if (user == null) {
             return ResponseEntity.status(404).body(Map.of(
@@ -138,7 +142,7 @@ public class ReservationController {
                     "message", "User or BookItem not found"
             ));
         }
-
+        reservation.setReturned(availableCount > 0);
         reservation.setUser(user);
         reservation.setBookItem(bookItem);
 
