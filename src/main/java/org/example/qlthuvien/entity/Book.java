@@ -30,7 +30,6 @@ public class Book {
     private Catalog catalog;
 
     @OneToMany(mappedBy = "book")
-    @JsonIgnore
     private List<BookItem> bookItems;
 
     @PrePersist void onCreate() {
