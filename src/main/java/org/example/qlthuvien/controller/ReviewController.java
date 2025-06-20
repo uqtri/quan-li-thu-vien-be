@@ -15,6 +15,7 @@ import org.example.qlthuvien.repository.BookRepository;
 import org.example.qlthuvien.repository.ReviewRepository;
 import org.example.qlthuvien.repository.UserRepository;
 import org.example.qlthuvien.services.BadgeService;
+import org.example.qlthuvien.services.ReviewService;
 import org.example.qlthuvien.services.UserService;
 import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
@@ -37,6 +38,7 @@ public class                     ReviewController {
     private final BookRepository bookRepository;
     private final UserService userService;
     private final BadgeService badgeService;
+    private final ReviewService reviewService;
 
 
     @GetMapping
@@ -182,11 +184,13 @@ public class                     ReviewController {
                 .createdAt(LocalDateTime.now())
                 .build();
 
-        Review saved = reviewRepository.save(review);
+//        Review saved = reviewRepository.save(review);
+        reviewService.addReview(review);
+
         userService.addXp(user, 1);
         badgeService.checkBadges(userId);
 
-        ApiResponse<ReviewResponse> response = new ApiResponse<>(true, "Nhận xét đã được tạo.", reviewMapper.toResponse(saved));
+        ApiResponse<ReviewResponse> response = new ApiResponse<>(true, "Nhận xét đã được tạo.", reviewMapper.toResponse(review));
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

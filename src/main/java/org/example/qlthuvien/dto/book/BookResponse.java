@@ -19,6 +19,7 @@ public class BookResponse {
     private String image;
     private List<BookItem> bookItems;
     private CatalogResponse catalog;
+    private double avg_rating;
 }
 
 
