@@ -24,7 +24,8 @@ public class BorrowedBook {
     @JsonIgnore
     private User user;
 
-    @OneToOne(mappedBy = "borrowedBook")
+    @OneToOne
+    @JoinColumn(name="book_item_id")
     private BookItem book_item;
 
     private LocalDateTime borrow_date;

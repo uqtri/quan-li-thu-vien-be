@@ -34,8 +34,7 @@ public class BookItem {
     @JsonIgnoreProperties("bookItems")
     private Book book;
 
-    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "borrowed_book_id")
+    @OneToOne(mappedBy = "book_item", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnoreProperties("book_item")
     private BorrowedBook borrowedBook;
     @PrePersist void onCreate() {
