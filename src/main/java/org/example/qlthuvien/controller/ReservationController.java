@@ -8,6 +8,7 @@ import org.example.qlthuvien.dto.reservation.UpdateReservationRequest;
 import org.example.qlthuvien.entity.Book;
 import org.example.qlthuvien.entity.Reservation;
 import org.example.qlthuvien.mapper.ReservationMapper;
+import org.example.qlthuvien.repository.BookItemRepository;
 import org.example.qlthuvien.repository.BookRepository;
 import org.example.qlthuvien.repository.ReservationRepository;
 import org.example.qlthuvien.services.EmailService;
@@ -28,6 +29,7 @@ public class ReservationController {
     private final ReservationMapper reservationMapper;
     private final EntityManager entityManager;
     private final BookRepository bookRepository;
+    private final BookItemRepository bookItemRepository;
     @GetMapping
     public ResponseEntity<?> getAllReservations(@CookieValue(name = "jwt", required = false) String token) {
         if (!hasRole(token, "ADMIN")) {
@@ -121,12 +123,12 @@ public class ReservationController {
         Book book = bookRepository.findById(bookItem.getBook().getId())
                 .orElseThrow(() -> new RuntimeException("Book not found"));
 
-        boolean hasAvailableItem = book.getBookItems().stream()
-                .anyMatch(item -> "AVAILABLE".equalsIgnoreCase(String.valueOf(item.getStatus())));
+        long availableCount = bookItemRepository.countAvailableByBookId(book.getId());
+        System.out.println(availableCount);
 
         Reservation reservation = new Reservation();
 
-        reservation.setReturned(hasAvailableItem);
+        reservation.setReturned(availableCount > 0);
 
         reservationRepository.save(reservation);
 
@@ -142,6 +144,11 @@ public class ReservationController {
 
         Reservation saved = reservationRepository.save(reservation);
 
+        if (availableCount > 0) {
+            String htmlContent = emailService.loadEmailTemplate("emailTemplate.html").replace("{bookTitle}", bookItem.getBook().getTitle());
+            System.out.println(htmlContent);
+            emailService.sendHtmlEmail(email, "Thông báo đặt sách thành công", htmlContent);
+        }
         return ResponseEntity.status(201).body(Map.of(
                 "success", true,
                 "message", "Reservation created successfully",

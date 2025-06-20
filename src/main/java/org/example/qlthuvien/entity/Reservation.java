@@ -27,7 +27,7 @@ public class Reservation {
     @JsonIgnore
     private User user;
 
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name="book_item_id")
     private BookItem bookItem;
 
@@ -38,7 +38,6 @@ public class Reservation {
     @PrePersist
     public void onCreate() {
         this.reservationDate = LocalDateTime.now();
-        this.returned = false;
     }
 
 }

@@ -36,8 +36,13 @@ public class BookItem {
 
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "borrowed_book_id")
-
     private BorrowedBook borrowedBook;
+
+    @OneToOne(mappedBy = "bookItem", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private Reservation reservation;
+
+
     @PrePersist void onCreate() {
         this.created_at = LocalDateTime.now();
         this.status = STATUS.AVAILABLE;

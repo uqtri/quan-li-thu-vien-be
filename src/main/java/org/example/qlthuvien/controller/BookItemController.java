@@ -47,7 +47,6 @@ public class BookItemController {
         Long bookId = bookItem.getBook().getId();
         reservationRepository.updateReturnedByBookItemBookId(bookId);
 
-
         return bookItemMapper.toResponse(bookItemRepository.save(bookItem));
      }
     @PutMapping("/{id}")
