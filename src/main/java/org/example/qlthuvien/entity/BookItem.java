@@ -36,7 +36,7 @@ public class BookItem {
 
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "borrowed_book_id")
-
+    @JsonIgnoreProperties("book_item")
     private BorrowedBook borrowedBook;
     @PrePersist void onCreate() {
         this.created_at = LocalDateTime.now();
