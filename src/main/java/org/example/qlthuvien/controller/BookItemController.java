@@ -12,6 +12,8 @@ import org.example.qlthuvien.mapper.BookItemMapper;
 import org.example.qlthuvien.repository.BookItemRepository;
 import org.example.qlthuvien.repository.BookRepository;
 import org.example.qlthuvien.repository.ReservationRepository;
+import org.example.qlthuvien.services.EmailService;
+import org.example.qlthuvien.utils.JwtUtil;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -30,15 +32,16 @@ public class BookItemController {
     private final BookItemMapper bookItemMapper;
     private final ReservationRepository reservationRepository;
     private final EntityManager entityManager;
-
+    private final EmailService emailService;
     private final BookRepository bookRepository;
+    private final JwtUtil jwtUtil;
     @GetMapping
 
     public Page<BookItemResponse> getAllBookItems(Pageable pageable) {
         return bookItemRepository.findAll(pageable).map(bookItemMapper::toResponse);
     }
     @PostMapping
-    public BookItemResponse createBookItem(@RequestBody CreateBookItemRequest data) {
+    public BookItemResponse createBookItem(@RequestBody CreateBookItemRequest data,  @CookieValue(name = "jwt", required = false) String token) {
         BookItem bookItem = bookItemMapper.toEntity(data);
         System.out.println(data.getBook_id());
         Book book = entityManager.find(Book.class, data.getBook_id());
@@ -46,7 +49,11 @@ public class BookItemController {
 
         Long bookId = bookItem.getBook().getId();
         reservationRepository.updateReturnedByBookItemBookId(bookId);
+        String htmlContent = emailService.loadEmailTemplate("emailTemplate.html").replace("{bookTitle}", bookItem.getBook().getTitle());
+        System.out.println(htmlContent);
 
+        String email = getEmailFromToken(token);
+        emailService.sendHtmlEmail(email, "Thông báo đặt sách thành công", htmlContent);
         return bookItemMapper.toResponse(bookItemRepository.save(bookItem));
      }
     @PutMapping("/{id}")
@@ -94,4 +101,7 @@ public class BookItemController {
         }
     }
 
+    private String getEmailFromToken(String token) {
+        return token != null && jwtUtil.validateToken(token) ? jwtUtil.extractEmail(token) : null;
+    }
 }
