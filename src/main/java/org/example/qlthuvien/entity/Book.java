@@ -29,12 +29,18 @@ public class Book {
     @JsonIgnoreProperties("book")
     private Catalog catalog;
 
+    @JsonIgnoreProperties("book")
     @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<BookItem> bookItems;
 
+    @JsonIgnoreProperties("book")
     @OneToMany (mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<Wishlist> wishLists;
+
+    @JsonIgnoreProperties("book")
+    @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Review> reviews;
 
     @PrePersist void onCreate() {
         this.avg_rating = 0;
