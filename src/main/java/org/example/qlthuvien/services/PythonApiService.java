@@ -49,11 +49,13 @@ public class PythonApiService {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.MULTIPART_FORM_DATA);
 
+            System.out.println(image.getOriginalFilename());
             HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
             System.out.println(requestEntity);
             ResponseEntity<Map> response = restTemplate.postForEntity(pythonUrl + "/search", requestEntity, Map.class);
             Map<String, Object> resultMap = response.getBody();
             Map<String, Object> result = response.getBody();
+            System.out.println(result);
             List<Integer> results = (List<Integer>) resultMap.get("answer");
             return results;
         } catch (Exception e) {

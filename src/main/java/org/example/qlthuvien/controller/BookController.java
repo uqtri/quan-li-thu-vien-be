@@ -138,7 +138,6 @@ public class BookController {
         }
         exsitedBook = bookMapper.updateEntity(exsitedBook, book);
 
-//        System.out.println(exsitedBook);
         return bookMapper.toResponse(bookRepository.save(exsitedBook));
     }
     @DeleteMapping("/{id}")
@@ -162,12 +161,8 @@ public class BookController {
 
         if(data.getImage() != null && !data.getImage().isEmpty()) {
             try {
-//                MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-//                body.add("image", new MultipartInputStreamFileResource(data.getImage().getInputStream(), data.getImage().getOriginalFilename()));
-
                 List<Integer> result = pythonApiService.sendImageSearchSimilar(data.getImage());
                 System.out.println(result);
-                System.out.println("HERE");
                 List<BookResponse> books = result.stream()
                         .map(id -> bookMapper.toResponse(bookRepository.findById(Long.valueOf(id)).orElse(null)))
                         .toList();
