@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/borrowed-books")
@@ -91,7 +92,12 @@ public class BorrowedBookController {
     public ResponseEntity<?> deleteBorrowedBook(@PathVariable Long id) {
         Map <String, Object> response = new HashMap<>();
         try {
-
+            BorrowedBook borrowedBook = borrowedBookRepository.findById(id).orElseThrow();
+            BookItem item = borrowedBook.getBook_item();
+            if (item != null) {
+                item.setBorrowedBook(null); // cắt mối quan hệ
+                item.setStatus(STATUS.AVAILABLE);
+            }
             borrowedBookRepository.deleteById(id);
             response.put("message", "Borrowed book successfully deleted");
             return ResponseEntity.status(200).body(response);
