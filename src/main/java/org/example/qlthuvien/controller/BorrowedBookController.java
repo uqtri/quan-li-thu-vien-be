@@ -3,6 +3,7 @@ package org.example.qlthuvien.controller;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.example.qlthuvien.dto.bookitem.STATUS;
+import org.example.qlthuvien.dto.bookitem.UpdateBookItemRequest;
 import org.example.qlthuvien.dto.borrowedbook.BorrowedBookResponse;
 import org.example.qlthuvien.dto.borrowedbook.CreateBorrowedBookRequest;
 import org.example.qlthuvien.dto.borrowedbook.UpdateBorrowedBookRequest;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/borrowed-books")
@@ -31,6 +33,7 @@ public class BorrowedBookController {
     private final BookItemRepository bookItemRepository;
     private final BorrowedBookMapper borrowedBookMapper;
     private final BadgeService badgeService;
+    private final BookItemController bookItemController;
 
     @GetMapping
     public List<BorrowedBookResponse> getAllBorrowedBooks() {
@@ -60,8 +63,10 @@ public class BorrowedBookController {
 
         userService.addXp(borrowUser, 5);
         badgeService.checkBadges(borrowUser.getId());
-        bookItem.setStatus(STATUS.Borrowed);
-        bookItemRepository.save(bookItem);
+        UpdateBookItemRequest updateBookItemRequest = new UpdateBookItemRequest();
+        updateBookItemRequest.setStatus(STATUS.Borrowed);
+        bookItemController.updateBookItem(bookItem.getId(), updateBookItemRequest);
+
 
         return borrowedBookMapper.toResponse(saved);
     }
@@ -76,14 +81,18 @@ public class BorrowedBookController {
         BorrowedBook temp = borrowedBookMapper.toEntity(data);
         BorrowedBook updated = borrowedBookRepository.save(existing);
         BookItem bookItem = existing.getBook_item();
+        UpdateBookItemRequest updateBookItemRequest = new UpdateBookItemRequest();
         if (updated.getStatus() == LendingStatus.BORROWED) {
-            bookItem.setStatus(STATUS.Borrowed);
+            updateBookItemRequest.setStatus(STATUS.Borrowed);
+        }
+        if (updated.getStatus() == LendingStatus.PENDING) {
+            updateBookItemRequest.setStatus(STATUS.Borrowed);
 
         }
         if (updated.getStatus() == LendingStatus.RETURNED) {
-            bookItem.setStatus(STATUS.AVAILABLE);
+            updateBookItemRequest.setStatus(STATUS.AVAILABLE);
         }
-        bookItemRepository.save(bookItem);
+        bookItemController.updateBookItem(bookItem.getId(), updateBookItemRequest);
         return borrowedBookMapper.toResponse(updated);
     }
 
@@ -91,6 +100,14 @@ public class BorrowedBookController {
     public ResponseEntity<?> deleteBorrowedBook(@PathVariable Long id) {
         Map <String, Object> response = new HashMap<>();
         try {
+            BorrowedBook borrowedBook = borrowedBookRepository.findById(id).orElseThrow();
+            BookItem item = borrowedBook.getBook_item();
+            if (item != null) {
+                item.setBorrowedBook(null); // cắt mối quan hệ
+                UpdateBookItemRequest updateBookItemRequest = new UpdateBookItemRequest();
+                updateBookItemRequest.setStatus(STATUS.AVAILABLE);
+                bookItemController.updateBookItem(item.getId(), updateBookItemRequest);
+            }
             borrowedBookRepository.deleteById(id);
             response.put("message", "Borrowed book successfully deleted");
             return ResponseEntity.status(200).body(response);

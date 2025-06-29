@@ -11,6 +11,7 @@ import lombok.ToString;
 import org.example.qlthuvien.dto.bookitem.STATUS;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Entity
@@ -38,9 +39,9 @@ public class BookItem {
     @JsonIgnoreProperties("book_item")
     private BorrowedBook borrowedBook;
 
-    @OneToOne(mappedBy = "bookItem", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "bookItem", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
-    private Reservation reservation;
+    private List<Reservation> reservation;
 
 
     @PrePersist void onCreate() {

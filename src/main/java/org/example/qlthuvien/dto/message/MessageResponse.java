@@ -18,5 +18,6 @@ public class MessageResponse {
     private String senderName;
     private String image;
     private String content;
+    private Boolean edited;
     private LocalDateTime timestamp;
 }
