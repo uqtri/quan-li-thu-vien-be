@@ -1,5 +1,6 @@
 package org.example.qlthuvien.services;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.example.qlthuvien.entity.PasswordResetCode;
 import org.example.qlthuvien.entity.User;
@@ -22,6 +23,7 @@ public class PasswordResetService {
 
 
     // Gửi mã xác nhận về email
+    @Transactional
     public void sendResetCode(String email) {
 
 
@@ -44,6 +46,7 @@ public class PasswordResetService {
     }
 
     // Đặt lại mật khẩu nếu mã xác nhận đúng
+    @Transactional
     public void resetPassword(String email, String code, String newPassword) {
         Optional<PasswordResetCode> optional = resetCodeRepo.findByEmailAndCode(email, code);
         if (optional.isEmpty() || optional.get().getExpirationTime().isBefore(LocalDateTime.now())) {
