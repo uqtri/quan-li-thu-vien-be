@@ -69,6 +69,7 @@ public class ChatController {
 
         ChatMessage existingMessage = existingMessageOpt.get();
         existingMessage.setContent(updatedMessage.getContent()); // assuming only content is updated
+        existingMessage.setEdited(true);
         ChatMessage updatedMessageEntity = messageRepository.save(existingMessage);
         MessageResponse res = messageMapper.toResponse(updatedMessageEntity);
 

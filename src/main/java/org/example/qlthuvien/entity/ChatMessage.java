@@ -21,10 +21,12 @@ public class ChatMessage {
     private String image;
 
     private String content;
+    private Boolean edited;
     private LocalDateTime timestamp;
 
     @PrePersist
     public void onCreate() {
         this.timestamp = LocalDateTime.now();
+        this.edited = false;
     }
 }
