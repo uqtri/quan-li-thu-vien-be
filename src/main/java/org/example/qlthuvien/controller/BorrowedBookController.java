@@ -91,6 +91,7 @@ public class BorrowedBookController {
     public ResponseEntity<?> deleteBorrowedBook(@PathVariable Long id) {
         Map <String, Object> response = new HashMap<>();
         try {
+
             borrowedBookRepository.deleteById(id);
             response.put("message", "Borrowed book successfully deleted");
             return ResponseEntity.status(200).body(response);
