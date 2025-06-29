@@ -209,4 +209,18 @@ public class UserController {
     private boolean hasRole(String token, String requiredRole) {
         return token != null && jwtUtil.validateToken(token) && requiredRole.equals(jwtUtil.extractRole(token));
     }
+
+    @GetMapping("/by-xp-desc")
+    public ResponseEntity<?> getAllUsesByXpDesc() {
+        Map<String, Object> response = new HashMap<>();
+
+        List<UserResponse> userResponses = userRepository.findAllByOrderByXpDesc()
+                .stream()
+                .map(userMapper::toResponse)
+                .toList();
+
+        response.put("success", true);
+        response.put("data", userResponses);
+        return ResponseEntity.ok(response);
+    }
 }
