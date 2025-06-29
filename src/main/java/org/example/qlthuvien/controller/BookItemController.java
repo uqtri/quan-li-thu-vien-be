@@ -51,7 +51,6 @@ public class BookItemController {
         bookItem = bookItemRepository.save(bookItem);
 
         Long bookId = book.getId();
-        reservationRepository.updateReturnedByBookId(bookId);
 
         List<Reservation> reservations = reservationRepository.findByBookId(bookId)
                 .stream()
@@ -65,7 +64,7 @@ public class BookItemController {
             String email = res.getUser().getEmail();
             emailService.sendHtmlEmail(email, "Thông báo: Sách bạn đặt đã có", htmlTemplate);
         }
-
+        reservationRepository.updateReturnedByBookId(bookId);
         return bookItemMapper.toResponse(bookItem);
     }
 
@@ -79,7 +78,7 @@ public class BookItemController {
         Long bookId = existedBookItem.getBook().getId();
 
         if ("AVAILABLE".equalsIgnoreCase(String.valueOf(existedBookItem.getStatus()))) {
-            reservationRepository.updateReturnedByBookId(bookId);
+
 
             List<Reservation> reservations = reservationRepository.findByBookId(bookId)
                     .stream()
@@ -93,6 +92,8 @@ public class BookItemController {
                 String email = res.getUser().getEmail();
                 emailService.sendHtmlEmail(email, "Thông báo: Sách bạn đặt đã có", htmlContent);
             }
+
+            reservationRepository.updateReturnedByBookId(bookId);
         } else {
             long availableCount = bookItemRepository.countAvailableByBookId(bookId);
             if (availableCount - 1 == 0) {

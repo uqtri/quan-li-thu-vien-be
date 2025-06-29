@@ -37,5 +37,8 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     void updateReturnedFalseByBookId(@Param("bookId") Long bookId);
 
     boolean existsByUserAndBook(User user, Book book); // đổi BookItem thành Book
+    @Transactional
+    void deleteByBookIdAndUserId(Long bookId, Long userId);
+
 }
 
