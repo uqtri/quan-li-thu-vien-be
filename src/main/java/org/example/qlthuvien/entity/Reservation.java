@@ -34,7 +34,6 @@ public class Reservation {
 
     @ManyToOne
     @JoinColumn(name="book_id")
-    @JsonIgnore
     private  Book book;
     private LocalDateTime reservationDate;
 
