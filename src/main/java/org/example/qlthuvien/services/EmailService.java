@@ -40,10 +40,7 @@ public class EmailService {
         } catch (MessagingException e) {
             throw new RuntimeException("Gửi email HTML thất bại", e);
         }
-
-
     }
-
     public String loadEmailTemplate(String filename) {
         try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream("templates/" + filename)) {
             if (inputStream == null) throw new FileNotFoundException("Không tìm thấy template: " + filename);
