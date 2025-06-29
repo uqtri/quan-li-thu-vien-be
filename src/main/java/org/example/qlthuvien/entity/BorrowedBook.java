@@ -39,7 +39,7 @@ public class BorrowedBook {
     public void onCreate() {
         this.borrow_date = LocalDateTime.now();
         this.due_date = this.borrow_date.plusDays(30) ;
-        this.status = LendingStatus.BORROWED;
+        this.status = LendingStatus.PENDING;
     }
 
 }
