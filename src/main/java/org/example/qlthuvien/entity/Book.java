@@ -21,7 +21,10 @@ public class Book {
     private Long id;
     private String title;
     private String author;
+
+    @Column(columnDefinition = "TEXT")
     private String description;
+
     private String image;
     private double avg_rating;
     @ManyToOne
