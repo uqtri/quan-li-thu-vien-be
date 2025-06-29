@@ -11,6 +11,7 @@ import lombok.ToString;
 import org.example.qlthuvien.dto.bookitem.STATUS;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Entity
@@ -37,6 +38,12 @@ public class BookItem {
     @OneToOne(mappedBy = "book_item", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnoreProperties("book_item")
     private BorrowedBook borrowedBook;
+
+    @OneToMany(mappedBy = "bookItem", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<Reservation> reservation;
+
+
     @PrePersist void onCreate() {
         this.created_at = LocalDateTime.now();
         this.status = STATUS.AVAILABLE;

@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.hibernate.mapping.ToOne;
 
 import java.time.LocalDateTime;
 import java.util.Date;
@@ -38,7 +39,6 @@ public class Reservation {
     @PrePersist
     public void onCreate() {
         this.reservationDate = LocalDateTime.now();
-        this.returned = false;
     }
 
 }

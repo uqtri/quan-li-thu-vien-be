@@ -38,6 +38,7 @@ public class Book {
 
     @JsonIgnoreProperties("book")
     @OneToMany (mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<Wishlist> wishLists;
 
     @JsonIgnoreProperties("book")
