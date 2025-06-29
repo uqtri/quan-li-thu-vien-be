@@ -81,6 +81,10 @@ public class BorrowedBookController {
             bookItem.setStatus(STATUS.Borrowed);
 
         }
+        if (updated.getStatus() == LendingStatus.PENDING) {
+            bookItem.setStatus(STATUS.Borrowed);
+
+        }
         if (updated.getStatus() == LendingStatus.RETURNED) {
             bookItem.setStatus(STATUS.AVAILABLE);
         }
