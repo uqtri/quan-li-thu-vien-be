@@ -9,4 +9,5 @@ import lombok.NoArgsConstructor;
 public class CreateReservationRequest {
     private Long user_id;
     private Long book_item_id;
+    private Long book_id;
 }
