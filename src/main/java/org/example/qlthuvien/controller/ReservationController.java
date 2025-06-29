@@ -109,8 +109,7 @@ public class ReservationController {
     @PostMapping
     public ResponseEntity<?> createReservation(@RequestBody CreateReservationRequest data,
                                                @CookieValue(name = "jwt", required = false) String token) {
-        String email = getEmailFromToken(token);
-        if (email == null || data.getBook_item_id() == null || data.getUser_id() == null) {
+        if (getEmailFromToken(token) == null ||  data.getBook_id() == null || data.getUser_id() == null) {
             return ResponseEntity.badRequest().body(Map.of(
                     "success", false,
                     "message", "Invalid data or token"
@@ -118,45 +117,42 @@ public class ReservationController {
         }
 
         User user = entityManager.find(User.class, data.getUser_id());
-        BookItem bookItem = entityManager.find(BookItem.class, data.getBook_item_id());
+        Book book = entityManager.find(Book.class, data.getBook_id());
 
-        Book book = bookRepository.findById(bookItem.getBook().getId())
-                .orElseThrow(() -> new RuntimeException("Book not found"));
+        if (user == null || book == null) {
+            return ResponseEntity.status(404).body(Map.of(
+                    "success", false,
+                    "message", "User or Book not found"
+            ));
+        }
 
-        long availableCount = bookItemRepository.countAvailableByBookId(book.getId());
-        System.out.println(availableCount);
-
-        Reservation reservation = new Reservation();
-
-        boolean alreadyExists = reservationRepository.existsByUserAndBookItem(user, bookItem);
+        boolean alreadyExists = reservationRepository.existsByUserAndBook(user, book);
         if (alreadyExists) {
             return ResponseEntity.status(409).body(Map.of(
                     "success", false,
-                    "message", "Reservation already exists for this user and book item"
+                    "message", "Reservation already exists for this user and book"
             ));
         }
 
-        if (user == null) {
-            return ResponseEntity.status(404).body(Map.of(
-                    "success", false,
-                    "message", "User or BookItem not found"
-            ));
-        }
+        long availableCount = bookItemRepository.countAvailableByBookId(book.getId());
+
+        Reservation reservation = new Reservation();
         reservation.setReturned(availableCount > 0);
         reservation.setUser(user);
-        reservation.setBookItem(bookItem);
+        reservation.setBook(book);
 
         Reservation saved = reservationRepository.save(reservation);
 
+        String email = user.getEmail();
         if (availableCount > 0) {
-            String htmlContent = emailService.loadEmailTemplate("emailTemplate.html").replace("{bookTitle}", bookItem.getBook().getTitle());
-            System.out.println(htmlContent);
+            String htmlContent = emailService.loadEmailTemplate("emailTemplate.html").replace("{bookTitle}", book.getTitle());
             emailService.sendHtmlEmail(email, "Thông báo đặt sách thành công", htmlContent);
         }
+
         return ResponseEntity.status(201).body(Map.of(
                 "success", true,
                 "message", "Reservation created successfully",
-                "data", saved
+                "data", reservationMapper.toResponse(saved)
         ));
     }
 
@@ -186,7 +182,7 @@ public class ReservationController {
         Reservation saved = reservationRepository.save(res);
         String email = res.getUser().getEmail();
 
-        String bookTitle = res.getBookItem().getBook().getTitle();
+        String bookTitle = res.getBook().getTitle();
 
         String htmlContent = emailService.loadEmailTemplate("emailTemplate.html").replace("{bookTitle}", bookTitle);
         System.out.println(htmlContent);

@@ -25,6 +25,5 @@ public class Wishlist {
 
     @ManyToOne
     @JoinColumn(name = "book_id")
-    @JsonIgnoreProperties("bookItems")
     private Book book;
 }

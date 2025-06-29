@@ -27,6 +27,7 @@ public class Book {
 
     private String image;
     private double avg_rating;
+
     @ManyToOne
     @JoinColumn(name = "catalog_id")
     @JsonIgnoreProperties("book")
@@ -40,6 +41,11 @@ public class Book {
     @OneToMany (mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<Wishlist> wishLists;
+
+    @JsonIgnoreProperties("book")
+    @OneToMany (mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<Reservation> reservations;
 
     @JsonIgnoreProperties("book")
     @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)

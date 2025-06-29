@@ -8,7 +8,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
-import org.hibernate.mapping.ToOne;
 
 import java.time.LocalDateTime;
 import java.util.Date;
@@ -28,9 +27,13 @@ public class Reservation {
     @JsonIgnore
     private User user;
 
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name="book_item_id")
     private BookItem bookItem;
+
+    @ManyToOne
+    @JoinColumn(name="book_id")
+    private Book book;
 
     private LocalDateTime reservationDate;
 
