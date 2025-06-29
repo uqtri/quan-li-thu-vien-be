@@ -15,6 +15,7 @@ import org.example.qlthuvien.repository.BookRepository;
 import org.example.qlthuvien.repository.ReviewRepository;
 import org.example.qlthuvien.repository.UserRepository;
 import org.example.qlthuvien.services.BadgeService;
+import org.example.qlthuvien.services.BookService;
 import org.example.qlthuvien.services.ReviewService;
 import org.example.qlthuvien.services.UserService;
 import org.springframework.data.domain.*;
@@ -26,6 +27,8 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/reviews")
@@ -39,6 +42,7 @@ public class                     ReviewController {
     private final UserService userService;
     private final BadgeService badgeService;
     private final ReviewService reviewService;
+    private final BookService bookService;
 
 
     @GetMapping
@@ -216,20 +220,52 @@ public class                     ReviewController {
 
     @DeleteMapping
     public ResponseEntity<?> deleteReviews(@RequestBody DeleteReviewsRequest request) {
+        List<Review> reviewsToDelete = reviewRepository.findAllById(request.getIds());
+
+        Set<Long> affectedBookIds = reviewsToDelete.stream()
+                .map(review -> review.getBook().getId())
+                .collect(Collectors.toSet());
+
+        for (Review review : reviewsToDelete) {
+            userService.addXp(review.getUser(), -1);
+            badgeService.revokeInvalidBadges(review.getUser().getId());
+        }
+
         reviewRepository.deleteAllById(request.getIds());
+
+        for (Long bookId : affectedBookIds) {
+            Double newAverage = bookService.calculateRating(bookId);
+            bookRepository.findById(bookId).ifPresent(book -> {
+                book.setAvg_rating(newAverage);
+                bookRepository.save(book);
+            });
+        }
 
         return ResponseEntity.ok(new ApiResponse<>(true,
                 "Đã xóa " + request.getIds().size() + " nhận xét.",
                 null));
     }
 
+
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteReview(@PathVariable Long id) {
         Review review = reviewRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy nhận xét."));
+
+        Long bookId = review.getBook().getId();
+
         userService.addXp(review.getUser(), -1);
         badgeService.revokeInvalidBadges(review.getUser().getId());
+
         reviewRepository.deleteById(id);
+
+        Double newAverage = bookService.calculateRating(bookId);
+        bookRepository.findById(bookId).ifPresent(book -> {
+            book.setAvg_rating(newAverage);
+            bookRepository.save(book);
+        });
+
         return ResponseEntity.ok(new ApiResponse<>(true, "Nhận xét được xóa thành công.", null));
     }
+
 }
