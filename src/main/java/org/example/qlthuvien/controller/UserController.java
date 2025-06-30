@@ -32,12 +32,6 @@ public class UserController {
     @GetMapping
     public ResponseEntity<?> getAllUsers(@CookieValue(name = "jwt", required = false) String token) {
         Map<String, Object> response = new HashMap<>();
-        
-        if (!hasRole(token, "ADMIN")) {
-            response.put("success", false);
-            response.put("message", "Access denied");
-            return ResponseEntity.status(403).body(response);
-        }
 
         List<UserResponse> userResponses = userRepository.findAll()
                 .stream()

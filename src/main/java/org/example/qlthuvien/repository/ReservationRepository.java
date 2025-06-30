@@ -1,6 +1,7 @@
 package org.example.qlthuvien.repository;
 
 import jakarta.transaction.Transactional;
+import org.example.qlthuvien.entity.Book;
 import org.example.qlthuvien.entity.BookItem;
 import org.example.qlthuvien.entity.Reservation;
 import org.example.qlthuvien.entity.User;
@@ -15,21 +16,29 @@ import java.util.List;
 @Repository
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
     List<Reservation> findByUserId(Long userId);
-    List<Reservation> findByBookItemId(Long bookItemId);
+    List<Reservation> findByBookId(Long bookId); // sửa từ bookItemId
+
     @Modifying
     @Transactional
     @Query("""
-    UPDATE Reservation r
-    SET r.returned = true
-    WHERE r.bookItem.book.id = :bookId AND r.returned = false
-""")
-    void updateReturnedByBookItemBookId(@Param("bookId") Long bookId);
+        UPDATE Reservation r
+        SET r.returned = true
+        WHERE r.book.id = :bookId AND r.returned = false
+    """)
+    void updateReturnedByBookId(@Param("bookId") Long bookId);
 
     @Modifying
     @Transactional
-    @Query("UPDATE Reservation r SET r.returned = false WHERE r.bookItem.book.id = :bookId AND r.returned = true")
-    void updateReturnedFalseByBookItemBookId(@Param("bookId") Long bookId);
+    @Query("""
+        UPDATE Reservation r
+        SET r.returned = false
+        WHERE r.book.id = :bookId AND r.returned = true
+    """)
+    void updateReturnedFalseByBookId(@Param("bookId") Long bookId);
 
-    boolean existsByUserAndBookItem(User user, BookItem bookItem);
+    boolean existsByUserAndBook(User user, Book book); // đổi BookItem thành Book
+    @Transactional
+    void deleteByBookIdAndUserId(Long bookId, Long userId);
 
 }
+

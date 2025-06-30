@@ -8,6 +8,7 @@ import org.example.qlthuvien.dto.bookitem.CreateBookItemRequest;
 import org.example.qlthuvien.dto.bookitem.UpdateBookItemRequest;
 import org.example.qlthuvien.entity.Book;
 import org.example.qlthuvien.entity.BookItem;
+import org.example.qlthuvien.entity.Reservation;
 import org.example.qlthuvien.mapper.BookItemMapper;
 import org.example.qlthuvien.repository.BookItemRepository;
 import org.example.qlthuvien.repository.BookRepository;
@@ -41,41 +42,68 @@ public class BookItemController {
         return bookItemRepository.findAll(pageable).map(bookItemMapper::toResponse);
     }
     @PostMapping
-    public BookItemResponse createBookItem(@RequestBody CreateBookItemRequest data,  @CookieValue(name = "jwt", required = false) String token) {
+    public BookItemResponse createBookItem(@RequestBody CreateBookItemRequest data,
+                                           @CookieValue(name = "jwt", required = false) String token) {
         BookItem bookItem = bookItemMapper.toEntity(data);
-        System.out.println(data.getBook_id());
         Book book = entityManager.find(Book.class, data.getBook_id());
         bookItem.setBook(book);
 
-        Long bookId = bookItem.getBook().getId();
-        reservationRepository.updateReturnedByBookItemBookId(bookId);
-        String htmlContent = emailService.loadEmailTemplate("emailTemplate.html").replace("{bookTitle}", bookItem.getBook().getTitle());
-        System.out.println(htmlContent);
+        bookItem = bookItemRepository.save(bookItem);
 
-        String email = getEmailFromToken(token);
-        emailService.sendHtmlEmail(email, "Thông báo đặt sách thành công", htmlContent);
-        return bookItemMapper.toResponse(bookItemRepository.save(bookItem));
-     }
+        Long bookId = book.getId();
+
+        List<Reservation> reservations = reservationRepository.findByBookId(bookId)
+                .stream()
+                .filter(res -> !res.isReturned()) // chưa nhận được sách
+                .toList();
+
+        String htmlTemplate = emailService.loadEmailTemplate("emailTemplate.html")
+                .replace("{bookTitle}", book.getTitle());
+
+        for (Reservation res : reservations) {
+            String email = res.getUser().getEmail();
+            emailService.sendHtmlEmail(email, "Thông báo: Sách bạn đặt đã có", htmlTemplate);
+        }
+        reservationRepository.updateReturnedByBookId(bookId);
+        return bookItemMapper.toResponse(bookItem);
+    }
+
     @PutMapping("/{id}")
     public BookItemResponse updateBookItem(@PathVariable Long id, @RequestBody UpdateBookItemRequest data) {
         BookItem bookItem = bookItemMapper.toEntity(data);
-        BookItem existedBookItem = bookItemRepository.findById(id).orElse(null);
+        BookItem existedBookItem = bookItemRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("BookItem not found"));
         existedBookItem = bookItemMapper.updateEntity(existedBookItem, bookItem);
 
+        Long bookId = existedBookItem.getBook().getId();
+
         if ("AVAILABLE".equalsIgnoreCase(String.valueOf(existedBookItem.getStatus()))) {
-            Long bookId = existedBookItem.getBook().getId();
-            reservationRepository.updateReturnedByBookItemBookId(bookId);
+
+
+            List<Reservation> reservations = reservationRepository.findByBookId(bookId)
+                    .stream()
+                    .filter(res -> !res.isReturned())
+                    .toList();
+
+            String htmlContent = emailService.loadEmailTemplate("emailTemplate.html")
+                    .replace("{bookTitle}", existedBookItem.getBook().getTitle());
+
+            for (Reservation res : reservations) {
+                String email = res.getUser().getEmail();
+                emailService.sendHtmlEmail(email, "Thông báo: Sách bạn đặt đã có", htmlContent);
+            }
+
+            reservationRepository.updateReturnedByBookId(bookId);
         } else {
-            Long bookId = existedBookItem.getBook().getId();
             long availableCount = bookItemRepository.countAvailableByBookId(bookId);
-            System.out.println(availableCount);
             if (availableCount - 1 == 0) {
-                reservationRepository.updateReturnedFalseByBookItemBookId(bookId); // thêm cái này
+                reservationRepository.updateReturnedFalseByBookId(bookId);
             }
         }
 
         return bookItemMapper.toResponse(bookItemRepository.save(existedBookItem));
     }
+
     @GetMapping("/book/{id}")
     public List<BookItemResponse> getAllBookItemsByBookId(@PathVariable Long id) {
         return bookItemRepository.findBookItemsByBookId(id).stream().map(bookItemMapper::toResponse).toList();
@@ -92,7 +120,7 @@ public class BookItemController {
 
             long availableCount = bookItemRepository.countAvailableByBookId(bookId);
             if (availableCount == 0) {
-                reservationRepository.updateReturnedFalseByBookItemBookId(bookId);
+                reservationRepository.updateReturnedFalseByBookId(bookId);
             }
 
             return ResponseEntity.ok("Book item deleted");
@@ -100,6 +128,7 @@ public class BookItemController {
             return ResponseEntity.status(500).body(e.getMessage());
         }
     }
+
 
     private String getEmailFromToken(String token) {
         return token != null && jwtUtil.validateToken(token) ? jwtUtil.extractEmail(token) : null;
