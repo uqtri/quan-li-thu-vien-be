@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+import lombok.ToString;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
@@ -18,6 +19,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Transactional
+@ToString(exclude = {"wishlists", "reservations", "lendings"})
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

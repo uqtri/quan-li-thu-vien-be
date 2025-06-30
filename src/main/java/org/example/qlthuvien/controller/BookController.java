@@ -39,9 +39,6 @@ public class BookController {
     private final EntityManager entityManager;
     private final CatalogRepository catalogRepository;
     private final PythonApiService pythonApiService;
-//
-//    @Value("${python.backend_url}")
-//    private String pythonUrl;
 
     @GetMapping
     Page<BookResponse> getAllBooks(@RequestParam(required = false) String title, Pageable pageable) {
@@ -101,6 +98,7 @@ public class BookController {
         Book book = bookMapper.toEntity(data);
         Book exsitedBook = bookRepository.findById(id).orElse(null);
 
+        System.out.println("UPDATE BOOK_ID: " + id);
         if (exsitedBook == null) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Book not found");
         }
@@ -121,6 +119,8 @@ public class BookController {
                 System.out.println(image.getOriginalFilename());
                 byte[] byteArray = image.getBytes();
 
+                pythonApiService.updateImage(image, exsitedBook.getId());
+
                 String base64String = "data:" + image.getContentType() + ";base64," + Base64.getEncoder().encodeToString(data.getImage().getBytes());
 
                 Map uploadResult = cloudinary.uploader().upload(base64String, ObjectUtils.asMap(
@@ -140,6 +140,7 @@ public class BookController {
 
         return bookMapper.toResponse(bookRepository.save(exsitedBook));
     }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Map<String, String>> deleteBook(@PathVariable Long id) {
         try {

@@ -12,6 +12,8 @@ import java.util.Date;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString(exclude = {"user", "book"})
+
 public class Wishlist {
 
     @Id

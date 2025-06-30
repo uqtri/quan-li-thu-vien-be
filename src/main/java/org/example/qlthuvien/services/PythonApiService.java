@@ -21,6 +21,29 @@ public class PythonApiService {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
+    public Map<String, String> updateImage(MultipartFile image, Long bookId) {
+        try {
+            MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+            body.add("image", new MultipartInputStreamFileResource(image.getInputStream(), image.getOriginalFilename()));
+            body.add("book_id", bookId);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+
+            HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+
+            ResponseEntity<Map> response = restTemplate.exchange(
+                    pythonUrl + "/update/" + bookId.toString(),
+                    HttpMethod.PUT,
+                    requestEntity,
+                    Map.class
+            );
+            return response.getBody();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
     public Map<String, String> sendImageAddIndex(MultipartFile image, Long bookId) {
         try {
             MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
