@@ -12,6 +12,7 @@ import org.example.qlthuvien.repository.BookItemRepository;
 import org.example.qlthuvien.repository.BookRepository;
 import org.example.qlthuvien.repository.ReservationRepository;
 import org.example.qlthuvien.services.EmailService;
+import org.example.qlthuvien.services.NotificationService;
 import org.example.qlthuvien.utils.JwtUtil;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -30,6 +31,7 @@ public class ReservationController {
     private final EntityManager entityManager;
     private final BookRepository bookRepository;
     private final BookItemRepository bookItemRepository;
+    private final NotificationService notificationService;
     @GetMapping
     public ResponseEntity<?> getAllReservations(@CookieValue(name = "jwt", required = false) String token) {
         if (!hasRole(token, "ADMIN")) {
@@ -185,6 +187,10 @@ public class ReservationController {
         String bookTitle = res.getBook().getTitle();
 
         String htmlContent = emailService.loadEmailTemplate("emailTemplate.html").replace("{bookTitle}", bookTitle);
+        notificationService.sendNotification(
+                res.getUser(),
+                "Đơn đặt trước cho \"" + bookTitle + "\" đã được xác nhận. Bạn có thể đến mượn sách."
+        );
         System.out.println(htmlContent);
         emailService.sendHtmlEmail(email, "Thông báo đặt sách thành công", htmlContent);
 

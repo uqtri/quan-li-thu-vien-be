@@ -62,8 +62,7 @@ public class BorrowedBookController {
         entity.setBook_item(bookItem);
         BorrowedBook saved = borrowedBookRepository.save(entity);
 
-        userService.addXp(borrowUser, 5);
-        badgeService.checkBadges(borrowUser.getId());
+
         UpdateBookItemRequest updateBookItemRequest = new UpdateBookItemRequest();
         updateBookItemRequest.setStatus(STATUS.Borrowed);
         bookItemController.updateBookItem(bookItem.getId(), updateBookItemRequest);
@@ -85,6 +84,9 @@ public class BorrowedBookController {
         UpdateBookItemRequest updateBookItemRequest = new UpdateBookItemRequest();
         if (updated.getStatus() == LendingStatus.BORROWED) {
             updateBookItemRequest.setStatus(STATUS.Borrowed);
+            User borrowUser = updated.getUser();
+            userService.addXp(borrowUser, 5);
+            badgeService.checkBadges(borrowUser.getId());
         }
         if (updated.getStatus() == LendingStatus.PENDING) {
             updateBookItemRequest.setStatus(STATUS.Borrowed);
